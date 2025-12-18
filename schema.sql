@@ -23,18 +23,21 @@ CREATE TABLE IF NOT EXISTS user_details (
 );
 
 -- =========================
--- INTERNSHIP
+-- INTERNSHIP 
 -- =========================
 CREATE TABLE IF NOT EXISTS internship (
     internship_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,          -- intern
+    supervisor_id INTEGER NOT NULL,    -- supervisor
     title TEXT NOT NULL,
-    domain TEXT NOT NULL,
-    weeks INTEGER NOT NULL, --include stipend???
-    start_date TEXT,   -- YYYY-MM-DD
+    domain TEXT NOT NULL, --include stipend???
+    weeks INTEGER NOT NULL,
+    start_date TEXT,
     end_date TEXT,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (supervisor_id) REFERENCES users(user_id)
 );
+
 
 -- =========================
 -- ATTENDANCE
