@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Supervisor Dashboard</title>
+</head>
+<body>
+
+    <h1>Supervisor Dashboard</h1>
+
+    <p><strong>Supervisor ID:</strong> {{ supervisor_id }}</p>
+
+    <h2>Interns Under Supervision</h2>
+
+    {% if internships %}
+        <p>Total interns: {{ internships | length }}</p>
+
+        <ul>
+            {% for internship in internships %}
+                <li>
+                    <strong>Intern:</strong>
+                    {{ internship.first_name }} {{ internship.last_name }}
+                    <br>
+
+                    <strong>Intern ID:</strong> {{ internship.intern_id }} <br>
+                    <strong>Internship ID:</strong> {{ internship.internship_id }} <br>
+                    <strong>Title:</strong> {{ internship.title }} <br>
+                    <strong>Domain:</strong> {{ internship.domain }}
+                </li>
+                <hr>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No interns assigned to this supervisor.</p>
+    {% endif %}
+
+    <a href="{{ url_for('home') }}">
+        <button>Back to Home</button>
+    </a>
+
+</body>
+</html>

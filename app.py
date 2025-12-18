@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,render_template
 from db import get_db
 from avatar import get_avatar_response
 
@@ -7,7 +7,8 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "Backend is running"
+    # return "Backend is running"
+    return render_template("home.html")
 
 @app.route("/test-db")
 def test_db():
@@ -121,7 +122,41 @@ def avatar(user_id, internship_id):
         "avatar_message": avatar_response["message"]
     }
 
+@app.route("/intern/<int:user_id>")
+def intern_dashboard(user_id):
+    db = get_db()
+    cursor = db.execute("SELECT * FROM internship WHERE user_id = ?", (user_id,))
+    internships = cursor.fetchall()
+    return render_template("intern_dashboard.html", internships=internships)
 
+@app.route("/supervisor/<int:supervisor_id>/dashboard")
+def supervisor_dashboard(supervisor_id):
+    db = get_db()
+
+    query = """
+    SELECT
+        u.user_id AS intern_id,
+        ud.first_name,
+        ud.last_name,
+        i.internship_id,
+        i.title,
+        i.domain
+    FROM internship i
+    JOIN users u ON i.user_id = u.user_id
+    JOIN user_details ud ON u.user_id = ud.user_id
+    WHERE i.supervisor_id = ?
+      AND u.role = 'intern';
+    """
+
+    rows = db.execute(query, (supervisor_id,)).fetchall()
+
+    internships = [dict(row) for row in rows]
+
+    return render_template(
+        "supervisor_dashboard.html",
+        supervisor_id=supervisor_id,
+        internships=internships
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)

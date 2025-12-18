@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS weekly_reports (
     score REAL NOT NULL
         CHECK (score >= 0 AND score <= 100),
     supervisor_feedback TEXT,
+    UNIQUE (internship_id, week_number),
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (internship_id) REFERENCES internship(internship_id) ON DELETE CASCADE
 );
