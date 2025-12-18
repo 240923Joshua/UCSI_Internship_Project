@@ -1,5 +1,5 @@
 from flask import Flask,render_template
-from db import get_db
+from db import get_db, calculate_attendance_percentage
 from avatar import get_avatar_response
 
 
@@ -26,23 +26,19 @@ def select_all_users():
 def attendance_percentage(user_id, internship_id):
     db = get_db()
 
-    query = """
-    SELECT 
-        ROUND(
-            (SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) * 100.0)
-            / COUNT(*),
-            2
-        ) AS attendance_percentage
-    FROM attendance
-    WHERE user_id = ? AND internship_id = ?;
-    """
+    attendance_percentage = calculate_attendance_percentage(db, user_id, internship_id)
 
-    result = db.execute(query, (user_id, internship_id)).fetchone()
+    if attendance_percentage is None:
+        return {
+            "message": "Attendance data not available yet",
+            "user_id": user_id,
+            "internship_id": internship_id
+        }
 
     return {
         "user_id": user_id,
         "internship_id": internship_id,
-        "attendance_percentage": result["attendance_percentage"] if result else 0
+        "attendance_percentage": attendance_percentage
     }
 
 @app.route("/ml-results/<int:user_id>/<int:internship_id>")
@@ -60,7 +56,9 @@ def ml_results(user_id, internship_id):
     result = db.execute(query, (user_id, internship_id)).fetchone()
 
     if not result:
-        return {"message": "No ML results found"}
+        return {
+            "status": "error",
+            "message": "No ML results found"}
 
     return {
         "user_id": user_id,
@@ -87,7 +85,17 @@ def avatar(user_id, internship_id):
         attendance_query, (user_id, internship_id)
     ).fetchone()
 
-    attendance_percentage = attendance_result["attendance_percentage"] or 0
+    attendance_percentage = calculate_attendance_percentage(db, user_id, internship_id)
+
+    if attendance_percentage is None:
+        return {
+            "avatar_state": "neutral",
+            "avatar_message": "Attendance data is still being collected.",
+            "user_id": user_id,
+            "internship_id": internship_id
+        }
+
+
 
     # 2️⃣ ML Results
     ml_query = """
@@ -103,7 +111,10 @@ def avatar(user_id, internship_id):
     ).fetchone()
 
     if not ml_result:
-        return {"message": "No ML results available"}
+        return {
+            "avatar_state": "neutral",
+            "avatar_message": "Performance prediction not available yet."
+        }
 
     # 3️⃣ Avatar decision
     avatar_response = get_avatar_response(
