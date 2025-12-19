@@ -223,7 +223,16 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
-
+@app.route("/<int:user_id>/profile")
+def profile(user_id):
+    if "user_id" not in session or session.get("role") != "intern":
+        return redirect(url_for("login"))
+    db = get_db()
+    cursor = db.execute("SELECT * FROM user_details WHERE user_id = ?", (user_id,))
+    user_details = cursor.fetchone()
+    cursor = db.execute("SELECT * FROM internship WHERE user_id = ?", (user_id,))
+    internships = cursor.fetchall()
+    return render_template("intern/finalprofile.html", user_details=user_details,internships=internships)
 
 if __name__ == "__main__":
     app.run(debug=True)

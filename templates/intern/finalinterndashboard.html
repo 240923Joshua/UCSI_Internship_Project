@@ -110,7 +110,7 @@
     </a>
 
     <!-- PROFILE OPTION ADDED -->
-    <a href="profile.html"
+    <a href="{{ url_for('profile', user_id=user_details.user_id) }}"
        class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
       <span class="material-symbols-outlined">person</span>
       Profile
