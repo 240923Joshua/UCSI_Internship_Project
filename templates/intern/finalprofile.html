@@ -70,7 +70,7 @@
   <!-- MENU -->
   <nav class="flex-1 px-4 mt-6 space-y-1">
 
-    <a href="student-dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+    <a href="{{url_for('intern_dashboard', user_id=user_details.user_id)}}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
       <span class="material-symbols-outlined">dashboard</span>
       Dashboard
     </a>
@@ -105,8 +105,9 @@
 
   <!-- USER -->
   <div class="p-4 border-t border-gray-200 dark:border-gray-800">
-    <p class="text-sm font-bold">Alex Morgan</p>
-    <p class="text-xs text-gray-500">Intern • Tech Dept</p>
+    <p class="text-sm font-bold">{{ user_details.first_name }} {{ user_details.last_name }}</p>
+    <p class="text-xs text-gray-500">Intern</p>
+    <p class="text-xs text-gray-500">{{ domain }}</p>
   </div>
 
 </aside>

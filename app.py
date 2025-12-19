@@ -146,7 +146,9 @@ def intern_dashboard(user_id):
     domain = domain[:-3]  # Remove trailing separator
     cursor = db.execute("SELECT * FROM user_details WHERE user_id = ?", (user_id,))
     user_details = cursor.fetchone()
-    return render_template("intern/finalinterndashboard.html", internships=internships[0], user_details=user_details,domain=domain)
+    cursor = db.execute("SELECT * FROM ml_results WHERE user_id = ? ORDER BY created_at DESC", (user_id,))
+    ml_results = cursor.fetchall()
+    return render_template("intern/finalinterndashboard.html", internships=internships[0], user_details=user_details,domain=domain,ml_results=ml_results)
 
 @app.route("/supervisor/<int:supervisor_id>/dashboard")
 def supervisor_dashboard(supervisor_id):
@@ -232,7 +234,11 @@ def profile(user_id):
     user_details = cursor.fetchone()
     cursor = db.execute("SELECT * FROM internship WHERE user_id = ?", (user_id,))
     internships = cursor.fetchall()
-    return render_template("intern/finalprofile.html", user_details=user_details,internships=internships)
+    domain=""
+    for i in internships:
+        domain+=i["domain"]+" • "
+    domain = domain[:-3]  # Remove trailing separator
+    return render_template("intern/finalprofile.html", user_details=user_details,internships=internships,domain=domain)
 
 if __name__ == "__main__":
     app.run(debug=True)

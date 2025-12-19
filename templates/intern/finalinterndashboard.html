@@ -123,7 +123,8 @@
       <div class="size-10 rounded-full bg-primary/30"></div>
       <div>
         <p class="font-bold"> {{ user_details.first_name }} {{ user_details.last_name }}</p>
-        <p class="text-xs text-gray-500">Intern • {{ domain }}</p>
+            <p class="text-xs text-gray-500">Intern</p>
+            <p class="text-xs text-gray-500">{{ domain }}</p>
       </div>
     </div>
   </div>
@@ -143,10 +144,16 @@
   <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <div class="p-6 rounded-2xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-800">
       <p class="text-sm text-gray-500">Overall Progress</p>
-      <p class="text-4xl font-bold mt-2">35%</p>
-      <div class="h-2 bg-gray-200 dark:bg-gray-800 rounded-full mt-3">
-        <div class="h-full w-[35%] bg-primary rounded-full"></div>
+      {% if ml_results %}
+      {% for result in ml_results %}
+        <p class="text-4xl font-bold mt-2">{{ result.predicted_score }}%</p>
+              <div class="h-2 bg-gray-200 dark:bg-gray-800 rounded-full mt-3">
+        <div class="h-full w-[{{ result.predicted_score }}%] bg-primary rounded-full"></div>
       </div>
+      {% endfor %}
+      {% else %}
+      <p class="text-4xl font-bold mt-2">N/A</p>
+      {% endif %}
     </div>
 
     <div class="p-6 rounded-2xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-800">
