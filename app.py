@@ -1,10 +1,10 @@
-from flask import Flask,render_template
+from flask import Flask,render_template, request, redirect, url_for, session
 from db import get_db, calculate_attendance_percentage
 from avatar import get_avatar_response
-
+from hasher import hash_password, verify_password
 
 app = Flask(__name__)
-
+app.secret_key = "d2a0fc31b5ca9b05585d76fd607983601efe4bf8980e10c9a40f13e36a3cb2e3"
 @app.route("/")
 def home():
     # return "Backend is running"
@@ -135,13 +135,23 @@ def avatar(user_id, internship_id):
 
 @app.route("/intern/<int:user_id>")
 def intern_dashboard(user_id):
+    domain=""
+    if "user_id" not in session or session.get("role") != "intern":
+        return redirect(url_for("login"))
     db = get_db()
     cursor = db.execute("SELECT * FROM internship WHERE user_id = ?", (user_id,))
     internships = cursor.fetchall()
-    return render_template("intern_dashboard.html", internships=internships)
+    for i in internships:
+        domain+=i["domain"]+" • "
+    domain = domain[:-3]  # Remove trailing separator
+    cursor = db.execute("SELECT * FROM user_details WHERE user_id = ?", (user_id,))
+    user_details = cursor.fetchone()
+    return render_template("intern/finalinterndashboard.html", internships=internships[0], user_details=user_details,domain=domain)
 
 @app.route("/supervisor/<int:supervisor_id>/dashboard")
 def supervisor_dashboard(supervisor_id):
+    if "user_id" not in session or session.get("role") != "supervisor":
+        return redirect(url_for("login"))
     db = get_db()
 
     query = """
@@ -168,6 +178,52 @@ def supervisor_dashboard(supervisor_id):
         supervisor_id=supervisor_id,
         internships=internships
     )
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        return render_template("login.html")
+
+    # POST logic starts here
+    email = request.form.get("email")
+    password = request.form.get("password")
+
+    db = get_db()
+
+    query = """
+    SELECT u.user_id, u.password, u.role
+    FROM users u
+    JOIN user_details ud ON u.user_id = ud.user_id
+    WHERE ud.email = ?;
+    """
+
+    user = db.execute(query, (email,)).fetchone()
+
+    if not user or not verify_password(user["password"], password):
+        return render_template(
+            "login.html",
+            error="Invalid email or password"
+        )
+
+    # Store session
+    session["user_id"] = user["user_id"]
+    session["role"] = user["role"]
+
+    # Redirect based on role
+    if user["role"] == "intern":
+        return redirect(url_for("intern_dashboard", user_id=user["user_id"]))
+
+    if user["role"] == "supervisor":
+        return redirect(url_for("supervisor_dashboard", supervisor_id=user["user_id"]))
+
+    return "Unknown role", 403
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)

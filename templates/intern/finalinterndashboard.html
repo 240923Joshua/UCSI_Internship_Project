@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>InternFlow Student Dashboard</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- THEME CONFIG -->
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#14b8a6",
+            "background-light": "#f8fafc",
+            "background-dark": "#020617",
+            "surface-dark": "#020617"
+          },
+          fontFamily: {
+            display: ["Spline Sans", "sans-serif"]
+          },
+          borderRadius: {
+            DEFAULT: "1rem",
+            lg: "2rem",
+            xl: "3rem",
+            full: "9999px"
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Spline Sans', sans-serif; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #020617; }
+    ::-webkit-scrollbar-thumb {
+      background: #1f2937;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #14b8a6;
+    }
+  </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-[#020617] dark:text-white h-screen overflow-hidden flex">
+
+<!-- SIDEBAR -->
+<aside class="w-80 h-full flex flex-col bg-background-light dark:bg-[#020617] border-r border-gray-200 dark:border-gray-800">
+
+  <!-- LOGO -->
+  <div class="p-6">
+    <div class="flex items-center gap-3">
+      <div class="size-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-3xl">hub</span>
+      </div>
+      <div>
+        <h1 class="font-bold text-xl">InternFlow</h1>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Student Portal</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI STATUS -->
+  <div class="px-4">
+    <div class="p-4 rounded-xl bg-primary/10 border border-primary/20">
+      <p class="text-xs font-bold uppercase text-primary">AI Status: Online</p>
+      <p class="text-sm mt-1">Your AI mentor is ready.</p>
+    </div>
+  </div>
+
+  <!-- NAVIGATION -->
+  <nav class="flex-1 px-4 mt-6 space-y-1">
+    <a class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#020617] font-medium shadow">
+      <span class="material-symbols-outlined">dashboard</span>
+      Dashboard
+    </a>
+
+    <a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">pie_chart</span>
+      My Progress
+    </a>
+
+    <a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">description</span>
+      Weekly Reports
+    </a>
+
+    <a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">smart_toy</span>
+      AI Avatar Guidance
+    </a>
+
+    <a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">school</span>
+      Skill Development
+    </a>
+
+    <!-- PROFILE OPTION ADDED -->
+    <a href="profile.html"
+       class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">person</span>
+      Profile
+    </a>
+  </nav>
+
+  <!-- USER INFO -->
+  <div class="p-4 border-t border-gray-200 dark:border-gray-800">
+    <div class="flex items-center gap-3">
+      <div class="size-10 rounded-full bg-primary/30"></div>
+      <div>
+        <p class="font-bold"> {{ user_details.first_name }} {{ user_details.last_name }}</p>
+        <p class="text-xs text-gray-500">Intern • {{ domain }}</p>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="flex-1 overflow-y-auto p-8">
+
+  <header class="mb-8">
+    <h2 class="text-4xl font-black">Dashboard</h2>
+    <p class="text-gray-500 dark:text-gray-400 mt-2">
+      Welcome back, {{user_details.first_name}}. AI guidance is active.
+    </p>
+  </header>
+
+  <!-- STATS -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="p-6 rounded-2xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-800">
+      <p class="text-sm text-gray-500">Overall Progress</p>
+      <p class="text-4xl font-bold mt-2">35%</p>
+      <div class="h-2 bg-gray-200 dark:bg-gray-800 rounded-full mt-3">
+        <div class="h-full w-[35%] bg-primary rounded-full"></div>
+      </div>
+    </div>
+
+    <div class="p-6 rounded-2xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-800">
+      <p class="text-sm text-gray-500">Reports Submitted</p>
+      <p class="text-4xl font-bold mt-2">4 / 12</p>
+    </div>
+
+    <div class="p-6 rounded-2xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-800">
+      <p class="text-sm text-gray-500">Skills Acquired</p>
+      <p class="text-4xl font-bold mt-2">8</p>
+    </div>
+  </section>
+
+  <!-- AI MENTOR -->
+  <section class="mt-10 p-8 rounded-3xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-800">
+    <span class="inline-flex items-center gap-2 text-primary font-bold text-xs uppercase">
+      <span class="material-symbols-outlined text-sm">auto_awesome</span>
+      AI Mentor Update
+    </span>
+
+    <h3 class="text-2xl font-bold mt-4">
+      "You're improving in Python. Focus next on optimization."
+    </h3>
+
+    <p class="text-gray-500 dark:text-gray-400 mt-3">
+      Reduce time complexity in sorting algorithms for better performance.
+    </p>
+
+    <div class="mt-5 flex gap-4">
+      <button class="px-6 py-3 rounded-full bg-primary text-[#020617] font-bold">
+        View Feedback
+      </button>
+      <button class="px-6 py-3 rounded-full border border-gray-300 dark:border-gray-700">
+        Watch Tutorial
+      </button>
+    </div>
+  </section>
+  <!-- LOGOUT BUTTON --> <!-- added by Pikathebot -->
+  <a href="{{ url_for('logout') }}">
+    <button>Logout</button>
+  </a>
+
+</main>
+</body>
+</html>
