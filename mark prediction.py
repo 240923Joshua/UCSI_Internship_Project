@@ -6,7 +6,7 @@ cursor = conn.cursor()
 def fetch_marks(user_id, internship_id):
     query = """
     SELECT score
-    FROM weekly_report
+    FROM weekly_reports
     WHERE user_id = ? AND score IS NOT NULL AND internship_id = ? ORDER BY week_number ASC"""
 
     cursor.execute(query, (user_id, internship_id))
@@ -53,7 +53,8 @@ def set_predict(user_id, internship_id):
             risk_level = "Low"
 
         insert_query = """
-        INSERT INTO weekly_report (user_id, internship_id, predicted_mark, risk_level)
+        INSERT INTO ml_results (user_id, internship_id, predicted_mark, risk_level)
         VALUES (?, ?, ?, ?)"""
         cursor.execute(insert_query, (user_id, internship_id, predicted_mark, risk_level ))
         conn.commit()
+set_predict(1,1)
