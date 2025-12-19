@@ -2,21 +2,21 @@
 <html class="dark" lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>InternFlow Student Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>InternFlow | Student Profile</title>
 
-  <!-- Google Fonts -->
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 
-  <!-- Material Symbols -->
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <!-- Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@300..700&display=swap" rel="stylesheet"/>
 
   <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
 
-  <!-- THEME CONFIG -->
+  <!-- Theme -->
   <script>
     tailwind.config = {
       darkMode: "class",
@@ -30,12 +30,6 @@
           },
           fontFamily: {
             display: ["Spline Sans", "sans-serif"]
-          },
-          borderRadius: {
-            DEFAULT: "1rem",
-            lg: "2rem",
-            xl: "3rem",
-            full: "9999px"
           }
         }
       }
@@ -44,24 +38,15 @@
 
   <style>
     body { font-family: 'Spline Sans', sans-serif; }
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #020617; }
-    ::-webkit-scrollbar-thumb {
-      background: #1f2937;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #14b8a6;
-    }
   </style>
 </head>
 
-<body class="bg-background-light dark:bg-background-dark text-[#020617] dark:text-white h-screen overflow-hidden flex">
+<body class="bg-background-light dark:bg-background-dark text-[#020617] dark:text-white h-screen flex overflow-hidden">
 
 <!-- SIDEBAR -->
 <aside class="w-80 h-full flex flex-col bg-background-light dark:bg-[#020617] border-r border-gray-200 dark:border-gray-800">
 
-  <!-- LOGO -->
+  <!-- Logo -->
   <div class="p-6">
     <div class="flex items-center gap-3">
       <div class="size-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center">
@@ -82,109 +67,134 @@
     </div>
   </div>
 
-  <!-- NAVIGATION -->
+  <!-- MENU -->
   <nav class="flex-1 px-4 mt-6 space-y-1">
-    <a class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#020617] font-medium shadow">
+
+    <a href="student-dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
       <span class="material-symbols-outlined">dashboard</span>
       Dashboard
     </a>
 
-    <a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
       <span class="material-symbols-outlined">pie_chart</span>
       My Progress
     </a>
 
-    <a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
       <span class="material-symbols-outlined">description</span>
       Weekly Reports
     </a>
 
-    <a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
       <span class="material-symbols-outlined">smart_toy</span>
       AI Avatar Guidance
     </a>
 
-    <a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
       <span class="material-symbols-outlined">school</span>
       Skill Development
     </a>
 
-    <!-- PROFILE OPTION ADDED -->
-    <a href="profile.html"
-       class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+    <!-- ACTIVE PROFILE -->
+    <a class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#020617] font-medium shadow">
       <span class="material-symbols-outlined">person</span>
       Profile
     </a>
+
   </nav>
 
-  <!-- USER INFO -->
+  <!-- USER -->
   <div class="p-4 border-t border-gray-200 dark:border-gray-800">
-    <div class="flex items-center gap-3">
-      <div class="size-10 rounded-full bg-primary/30"></div>
-      <div>
-        <p class="font-bold">Alex Morgan</p>
-        <p class="text-xs text-gray-500">Intern • Tech Dept</p>
-      </div>
-    </div>
+    <p class="text-sm font-bold">Alex Morgan</p>
+    <p class="text-xs text-gray-500">Intern • Tech Dept</p>
   </div>
+
 </aside>
 
 <!-- MAIN -->
-<main class="flex-1 overflow-y-auto p-8">
+<main class="flex-1 overflow-y-auto p-10">
 
-  <header class="mb-8">
-    <h2 class="text-4xl font-black">Dashboard</h2>
+  <header class="mb-10">
+    <h2 class="text-4xl font-black">Student Profile</h2>
     <p class="text-gray-500 dark:text-gray-400 mt-2">
-      Welcome back, Alex. AI guidance is active.
+      Personal and internship details
     </p>
   </header>
 
-  <!-- STATS -->
-  <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="p-6 rounded-2xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-800">
-      <p class="text-sm text-gray-500">Overall Progress</p>
-      <p class="text-4xl font-bold mt-2">35%</p>
-      <div class="h-2 bg-gray-200 dark:bg-gray-800 rounded-full mt-3">
-        <div class="h-full w-[35%] bg-primary rounded-full"></div>
+  <!-- PROFILE CARD -->
+  <section class="bg-white dark:bg-surface-dark rounded-3xl p-8 border border-gray-200 dark:border-gray-800 max-w-4xl">
+
+    <div class="flex items-center gap-6 mb-8">
+      <div class="size-24 rounded-full bg-primary/30 flex items-center justify-center text-3xl font-bold">
+        AM
+      </div>
+      <div>
+        <h3 class="text-2xl font-bold">{{ user_details.first_name }} {{ user_details.last_name }}</h3>
+        <p class="text-gray-500">Student Intern</p>
+        <p class="text-sm text-gray-400">Tech Department</p>
       </div>
     </div>
 
-    <div class="p-6 rounded-2xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-800">
-      <p class="text-sm text-gray-500">Reports Submitted</p>
-      <p class="text-4xl font-bold mt-2">4 / 12</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <p class="text-sm text-gray-500">Email</p>
+        <p class="font-medium">{{ user_details.email }}</p>
+      </div>
+
+      <div>
+        <p class="text-sm text-gray-500">University</p>
+        <p class="font-medium">ABC University</p>
+      </div>
+
+      <div>
+        <p class="text-sm text-gray-500">Phone</p>
+        <p class="font-medium">{{ user_details.phone_number }}</p>
+      </div>
+      <br>
+      <!-- Addition of multiple internship details -->
+
+      {% for internship in internships %}
+        <div>
+          <p class="text-sm text-gray-500">Title</p>
+          <p class="font-medium">{{ internship.title }}</p>
+        </div>
+
+        <div>
+          <p class="text-sm text-gray-500">Internship Duration</p>
+          <p class="font-medium">{{ internship.start_date }} – {{ internship.end_date }}</p>
+        </div>
+      {% endfor %}
+
+      <!-- <div>
+        <p class="text-sm text-gray-500">Role</p>
+        <p class="font-medium">Software Development Intern</p>
+      </div>
+
+      <div>
+        <p class="text-sm text-gray-500">Internship Duration</p>
+        <p class="font-medium">Jan 2024 – Jun 2024</p>
+      </div> -->
     </div>
 
-    <div class="p-6 rounded-2xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-800">
-      <p class="text-sm text-gray-500">Skills Acquired</p>
-      <p class="text-4xl font-bold mt-2">8</p>
+    <div class="mt-10">
+      <h4 class="text-xl font-bold mb-4">Skills</h4>
+      <div class="flex flex-wrap gap-3">
+        <span class="px-4 py-2 rounded-full bg-primary/10 text-primary font-medium">Python</span>
+        <span class="px-4 py-2 rounded-full bg-primary/10 text-primary font-medium">JavaScript</span>
+        <span class="px-4 py-2 rounded-full bg-primary/10 text-primary font-medium">Machine Learning</span>
+        <span class="px-4 py-2 rounded-full bg-primary/10 text-primary font-medium">Flask</span>
+      </div>
     </div>
-  </section>
 
-  <!-- AI MENTOR -->
-  <section class="mt-10 p-8 rounded-3xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-800">
-    <span class="inline-flex items-center gap-2 text-primary font-bold text-xs uppercase">
-      <span class="material-symbols-outlined text-sm">auto_awesome</span>
-      AI Mentor Update
-    </span>
-
-    <h3 class="text-2xl font-bold mt-4">
-      "You're improving in Python. Focus next on optimization."
-    </h3>
-
-    <p class="text-gray-500 dark:text-gray-400 mt-3">
-      Reduce time complexity in sorting algorithms for better performance.
-    </p>
-
-    <div class="mt-5 flex gap-4">
+    <div class="mt-10">
       <button class="px-6 py-3 rounded-full bg-primary text-[#020617] font-bold">
-        View Feedback
-      </button>
-      <button class="px-6 py-3 rounded-full border border-gray-300 dark:border-gray-700">
-        Watch Tutorial
+        Edit Profile
       </button>
     </div>
+
   </section>
 
 </main>
+
 </body>
 </html>

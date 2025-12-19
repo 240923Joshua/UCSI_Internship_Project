@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>InternFlow | Student Profile</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@300..700&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+
+  <!-- Theme -->
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#14b8a6",
+            "background-light": "#f8fafc",
+            "background-dark": "#020617",
+            "surface-dark": "#020617"
+          },
+          fontFamily: {
+            display: ["Spline Sans", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Spline Sans', sans-serif; }
+  </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-[#020617] dark:text-white h-screen flex overflow-hidden">
+
+<!-- SIDEBAR -->
+<aside class="w-80 h-full flex flex-col bg-background-light dark:bg-[#020617] border-r border-gray-200 dark:border-gray-800">
+
+  <!-- Logo -->
+  <div class="p-6">
+    <div class="flex items-center gap-3">
+      <div class="size-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-3xl">hub</span>
+      </div>
+      <div>
+        <h1 class="font-bold text-xl">InternFlow</h1>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Student Portal</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI STATUS -->
+  <div class="px-4">
+    <div class="p-4 rounded-xl bg-primary/10 border border-primary/20">
+      <p class="text-xs font-bold uppercase text-primary">AI Status: Online</p>
+      <p class="text-sm mt-1">Your AI mentor is ready.</p>
+    </div>
+  </div>
+
+  <!-- MENU -->
+  <nav class="flex-1 px-4 mt-6 space-y-1">
+
+    <a href="student-dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">dashboard</span>
+      Dashboard
+    </a>
+
+    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">pie_chart</span>
+      My Progress
+    </a>
+
+    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">description</span>
+      Weekly Reports
+    </a>
+
+    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">smart_toy</span>
+      AI Avatar Guidance
+    </a>
+
+    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-gray-200 dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">school</span>
+      Skill Development
+    </a>
+
+    <!-- ACTIVE PROFILE -->
+    <a class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#020617] font-medium shadow">
+      <span class="material-symbols-outlined">person</span>
+      Profile
+    </a>
+
+  </nav>
+
+  <!-- USER -->
+  <div class="p-4 border-t border-gray-200 dark:border-gray-800">
+    <p class="text-sm font-bold">Alex Morgan</p>
+    <p class="text-xs text-gray-500">Intern • Tech Dept</p>
+  </div>
+
+</aside>
+
+<!-- MAIN -->
+<main class="flex-1 overflow-y-auto p-10">
+
+  <header class="mb-10">
+    <h2 class="text-4xl font-black">Student Profile</h2>
+    <p class="text-gray-500 dark:text-gray-400 mt-2">
+      Personal and internship details
+    </p>
+  </header>
+
+  <!-- PROFILE CARD -->
+  <section class="bg-white dark:bg-surface-dark rounded-3xl p-8 border border-gray-200 dark:border-gray-800 max-w-4xl">
+
+    <div class="flex items-center gap-6 mb-8">
+      <div class="size-24 rounded-full bg-primary/30 flex items-center justify-center text-3xl font-bold">
+        AM
+      </div>
+      <div>
+        <h3 class="text-2xl font-bold">Alex Morgan</h3>
+        <p class="text-gray-500">Student Intern</p>
+        <p class="text-sm text-gray-400">Tech Department</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <p class="text-sm text-gray-500">Email</p>
+        <p class="font-medium">alex.morgan@internflow.com</p>
+      </div>
+
+      <div>
+        <p class="text-sm text-gray-500">University</p>
+        <p class="font-medium">ABC University</p>
+      </div>
+
+      <div>
+        <p class="text-sm text-gray-500">Role</p>
+        <p class="font-medium">Software Development Intern</p>
+      </div>
+
+      <div>
+        <p class="text-sm text-gray-500">Internship Duration</p>
+        <p class="font-medium">Jan 2024 – Jun 2024</p>
+      </div>
+    </div>
+
+    <div class="mt-10">
+      <h4 class="text-xl font-bold mb-4">Skills</h4>
+      <div class="flex flex-wrap gap-3">
+        <span class="px-4 py-2 rounded-full bg-primary/10 text-primary font-medium">Python</span>
+        <span class="px-4 py-2 rounded-full bg-primary/10 text-primary font-medium">JavaScript</span>
+        <span class="px-4 py-2 rounded-full bg-primary/10 text-primary font-medium">Machine Learning</span>
+        <span class="px-4 py-2 rounded-full bg-primary/10 text-primary font-medium">Flask</span>
+      </div>
+    </div>
+
+    <div class="mt-10">
+      <button class="px-6 py-3 rounded-full bg-primary text-[#020617] font-bold">
+        Edit Profile
+      </button>
+    </div>
+
+  </section>
+
+</main>
+
+</body>
+</html>
