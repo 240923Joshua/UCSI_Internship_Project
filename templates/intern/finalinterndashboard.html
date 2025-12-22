@@ -192,9 +192,11 @@
     </div>
   </section>
   <!-- LOGOUT BUTTON --> <!-- added by Pikathebot -->
-  <a href="{{ url_for('logout') }}">
-    <button>Logout</button>
-  </a>
+  <div class="mt-5 flex gap-5">
+      <a href="{{ url_for('logout') }}">
+            <button class="px-6 py-3 rounded-full bg-red-500 text-white font-bold">Logout</button>
+      </a>
+  </div>
 
 </main>
 </body>
