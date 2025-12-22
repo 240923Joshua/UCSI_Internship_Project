@@ -1,63 +1,158 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>AI Chatbot</title>
   <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+      background-color: #f0f2f5;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    .chat-container {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+      margin-bottom: 20px;
+    }
+
+    .avatar img {
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      border: 2px solid #ccc;
+    }
+
+    .input-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    input {
+      padding: 10px;
+      width: 300px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
     #status {
       margin-top: 10px;
       font-style: italic;
-      color: #888;
+      color: #555;
       display: none;
+    }
+
+    #reply {
+      margin-top: 20px;
+      font-size: 18px;
+      min-height: 24px;
+      max-width: 500px;
+      text-align: center;
+      color: #333;
     }
   </style>
 </head>
 <body>
 
-<h2>AI Chatbot</h2>
+  <h2>AI Chatbot 🤖</h2>
 
-<input id="msg" placeholder="Type a message">
-<button onclick="send()">Send</button>
+  <div class="chat-container">
+    <div class="avatar">
+      <img id="avatar" src="{{ url_for('static', filename='normal_gif.gif') }}" alt="Avatar">
+    </div>
 
-<p id="status">🤖 AI is formulating a response...</p>
-<p id="reply"></p>
+    <div class="chat-box">
+      <div class="input-container">
+        <input id="msg" placeholder="Type a message" autofocus>
+        <button onclick="send()">Send</button>
+      </div>
+      <p id="status">🤖 AI is formulating a response...</p>
+      <p id="reply"></p>
+    </div>
+  </div>
 
-<script>
-function send() {
-  const text = document.getElementById("msg").value;
-  const status = document.getElementById("status");
-  const reply = document.getElementById("reply");
+  <script>
+    const avatar = document.getElementById("avatar");
+    const normalGif = "{{ url_for('static', filename='normal_gif.gif') }}";
+    const talkingGif = "{{ url_for('static', filename='talking_gif.gif') }}";
 
-  // Show notice
-  status.style.display = "block";
-  reply.innerText = "";
+    function send() {
+      const text = document.getElementById("msg").value.trim();
+      const status = document.getElementById("status");
+      const reply = document.getElementById("reply");
 
-  fetch("/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: text })
-  })
-  .then(res => res.json())
-  .then(data => {
-    // Hide notice
-    status.style.display = "none";
-    reply.innerText = data.reply;
-  })
-  .then(res => {
-  if (!res.ok) {
-    return res.json().then(err => { throw err });
-  }
-  return res.json();
-})
-.then(data => {
-  status.style.display = "none";
-  reply.innerText = data.reply;
-})
-.catch(err => {
-  status.innerText = "⚠️ AI failed: " + (err.error || "Unknown error");
-});
+      if (!text) return;
 
-}
-</script>
+      status.style.display = "block";
+      status.innerText = "🤖 Thinking...";
+      avatar.src = talkingGif;
+      reply.innerText = "";
+
+      fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
+      })
+      .then(res => res.ok ? res.json() : res.json().then(err => { throw err; }))
+      .then(data => {
+        reply.innerText = data.reply || "";
+        status.innerText = "🤖 Speaking...";
+
+        fetch("/start_speech", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: data.reply })
+        });
+
+        const interval = setInterval(() => {
+          fetch("/done_speech")
+            .then(res => res.json())
+            .then(d => {
+              if (!d.speaking) {
+                clearInterval(interval);
+                avatar.src = normalGif;
+                status.style.display = "none";
+              }
+            })
+            .catch(() => {
+              clearInterval(interval);
+              avatar.src = normalGif;
+              status.style.display = "none";
+            });
+        }, 500);
+      })
+      .catch(err => {
+        status.innerText = "⚠️ AI failed: " + (err.error || "Unknown error");
+        avatar.src = normalGif;
+      });
+
+      document.getElementById("msg").value = "";
+    }
+  </script>
 
 </body>
 </html>
