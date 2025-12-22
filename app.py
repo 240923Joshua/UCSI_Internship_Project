@@ -3,6 +3,7 @@ from db import get_db, calculate_attendance_percentage
 from avatar import get_avatar_response
 from hasher import hash_password, verify_password
 from llm import generate_response, build_avatar_prompt
+from intent import detect_intent_with_confidence
 
 app = Flask(__name__)
 app.secret_key = "d2a0fc31b5ca9b05585d76fd607983601efe4bf8980e10c9a40f13e36a3cb2e3"
@@ -248,6 +249,18 @@ def avatar_chat():
     user_id = data.get("user_id")
     internship_id = data.get("internship_id")
     user_message = data.get("message")
+
+    intent_result = detect_intent_with_confidence(user_message)
+
+    if intent_result["confidence"] == "none":
+        return jsonify({
+            "reply": "I can help with internship-related topics like attendance, performance, and weekly progress. Please ask something related to your internship."
+        })
+
+    if intent_result["confidence"] == "low":
+        return jsonify({
+            "reply": "Could you clarify your question? Are you asking about attendance, performance, risk level, or weekly guidance?"
+        })
 
     db = get_db()
 
