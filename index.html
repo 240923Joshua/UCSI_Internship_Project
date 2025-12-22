@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Chatbot</title>
+  <style>
+    #status {
+      margin-top: 10px;
+      font-style: italic;
+      color: #888;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<h2>AI Chatbot</h2>
+
+<input id="msg" placeholder="Type a message">
+<button onclick="send()">Send</button>
+
+<p id="status">🤖 AI is formulating a response...</p>
+<p id="reply"></p>
+
+<script>
+function send() {
+  const text = document.getElementById("msg").value;
+  const status = document.getElementById("status");
+  const reply = document.getElementById("reply");
+
+  // Show notice
+  status.style.display = "block";
+  reply.innerText = "";
+
+  fetch("/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: text })
+  })
+  .then(res => res.json())
+  .then(data => {
+    // Hide notice
+    status.style.display = "none";
+    reply.innerText = data.reply;
+  })
+  .then(res => {
+  if (!res.ok) {
+    return res.json().then(err => { throw err });
+  }
+  return res.json();
+})
+.then(data => {
+  status.style.display = "none";
+  reply.innerText = data.reply;
+})
+.catch(err => {
+  status.innerText = "⚠️ AI failed: " + (err.error || "Unknown error");
+});
+
+}
+</script>
+
+</body>
+</html>
