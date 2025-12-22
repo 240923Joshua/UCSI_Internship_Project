@@ -1,7 +1,8 @@
-from flask import Flask,render_template, request, redirect, url_for, session
+from flask import Flask,render_template, request, redirect, url_for, session, jsonify
 from db import get_db, calculate_attendance_percentage
 from avatar import get_avatar_response
 from hasher import hash_password, verify_password
+from llm import generate_response, build_avatar_prompt
 
 app = Flask(__name__)
 app.secret_key = "d2a0fc31b5ca9b05585d76fd607983601efe4bf8980e10c9a40f13e36a3cb2e3"
@@ -87,13 +88,13 @@ def avatar(user_id, internship_id):
 
     attendance_percentage = calculate_attendance_percentage(db, user_id, internship_id)
 
-    if attendance_percentage is None:
-        return {
-            "avatar_state": "neutral",
-            "avatar_message": "Attendance data is still being collected.",
-            "user_id": user_id,
-            "internship_id": internship_id
-        }
+    # if attendance_percentage is None:
+    #     return {
+    #         "avatar_state": "neutral",
+    #         "avatar_message": "Attendance data is still being collected.",
+    #         "user_id": user_id,
+    #         "internship_id": internship_id
+    #     }
 
 
 
@@ -126,7 +127,7 @@ def avatar(user_id, internship_id):
     return {
         "user_id": user_id,
         "internship_id": internship_id,
-        "attendance_percentage": round(attendance_percentage, 2),
+        "attendance_percentage": round(attendance_percentage, 2) if attendance_percentage is not None else None,
         "predicted_score": ml_result["predicted_score"],
         "risk_level": ml_result["risk_level"],
         "avatar_state": avatar_response["state"],
@@ -240,5 +241,57 @@ def profile(user_id):
     domain = domain[:-3]  # Remove trailing separator
     return render_template("intern/finalprofile.html", user_details=user_details,internships=internships,domain=domain)
 
+@app.route("/avatar/chat", methods=["POST"])
+def avatar_chat():
+    data = request.json
+
+    user_id = data.get("user_id")
+    internship_id = data.get("internship_id")
+    user_message = data.get("message")
+
+    db = get_db()
+
+    # 1️⃣ Fetch internship domain
+    internship = db.execute(
+        "SELECT domain FROM internship WHERE internship_id = ?",
+        (internship_id,)
+    ).fetchone()
+
+    if not internship:
+        return jsonify({"reply": "Invalid internship."}), 400
+
+    domain = internship["domain"]
+
+    # 2️⃣ Fetch attendance
+    attendance_percentage = calculate_attendance_percentage(
+        db, user_id, internship_id
+    )
+
+    # 3️⃣ Fetch ML result
+    ml_result = db.execute(
+        "SELECT predicted_score, risk_level FROM ml_results WHERE user_id = ? AND internship_id = ?",
+        (user_id, internship_id)
+    ).fetchone()
+
+    if attendance_percentage is None or not ml_result:
+        return jsonify({
+            "reply": "I need more performance data before I can guide you properly."
+        })
+
+    # 4️⃣ Build prompt
+    prompt = build_avatar_prompt(
+        attendance_percentage,
+        ml_result["predicted_score"],
+        ml_result["risk_level"],
+        domain,
+        user_message
+    )
+
+    # 5️⃣ Generate response
+    reply = generate_response(prompt)
+
+    return jsonify({"reply": reply})
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
