@@ -7,3 +7,6 @@ hf_cache/
 torch_cache/
 tts_cache/
 *.flac
+*.wav
+needtodo.txt
+*.bkp

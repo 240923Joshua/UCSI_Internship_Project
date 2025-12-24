@@ -2,8 +2,9 @@ from flask import Flask,render_template, request, redirect, url_for, session, js
 from db import get_db, calculate_attendance_percentage
 from avatar import get_avatar_response
 from hasher import hash_password, verify_password
-from llm import generate_response, build_avatar_prompt
+from llm import generate_response, build_avatar_prompt, synthesize_speech
 from intent import detect_intent_with_confidence
+from memory import get_last_message, set_last_message
 
 app = Flask(__name__)
 app.secret_key = "d2a0fc31b5ca9b05585d76fd607983601efe4bf8980e10c9a40f13e36a3cb2e3"
@@ -232,15 +233,32 @@ def profile(user_id):
     if "user_id" not in session or session.get("role") != "intern":
         return redirect(url_for("login"))
     db = get_db()
+    month = {'01': 'January', '02': 'February', '03': 'March', '04': 'April',
+             '05': 'May', '06': 'June', '07': 'July', '08': 'August',
+             '09': 'September', '10': 'October', '11': 'November', '12': 'December'}
     cursor = db.execute("SELECT * FROM user_details WHERE user_id = ?", (user_id,))
     user_details = cursor.fetchone()
     cursor = db.execute("SELECT * FROM internship WHERE user_id = ?", (user_id,))
     internships = cursor.fetchall()
     domain=""
+    dates=[]
     for i in internships:
         domain+=i["domain"]+" • "
+        start_split = i["start_date"].split("-")
+        end_split = i["end_date"].split("-")
+        start_formatted = f"{month[start_split[1]]} {int(start_split[2])}, {start_split[0]}"
+        end_formatted = f"{month[end_split[1]]} {int(end_split[2])}, {end_split[0]}"
+        dates.append(f"{start_formatted} — {end_formatted}")
     domain = domain[:-3]  # Remove trailing separator
-    return render_template("intern/finalprofile.html", user_details=user_details,internships=internships,domain=domain)
+    # selected_id = request.args.get("internship_id")
+    # print(selected_id)
+    # if selected_id:
+    #     selected_id = int(selected_id)
+    #     internships = [i for i in internships if i["internship_id"] == selected_id]
+    # else:
+    #     internships = [internships[0]]
+    #     selected_id = internships[0]["internship_id"]
+    return render_template("intern/final2profile.html", user_details=user_details,internships=internships,domain=domain,dates=dates)
 
 @app.route("/avatar/chat", methods=["POST"])
 def avatar_chat():
@@ -297,11 +315,15 @@ def avatar_chat():
         ml_result["predicted_score"],
         ml_result["risk_level"],
         domain,
-        user_message
+        user_message,
+        memory=get_last_message(user_id, internship_id)
     )
 
     # 5️⃣ Generate response
     reply = generate_response(prompt)
+    # 6️⃣ Store last message in memory
+    synthesize_speech(reply, output_file="response.wav")
+    set_last_message(user_id, internship_id, reply)
 
     return jsonify({"reply": reply})
 
