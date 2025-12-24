@@ -3,7 +3,9 @@ INTENT_PRIORITY = [
     "risk",
     "weekly_guidance",
     "performance",
-    "general_internship"
+    "general_internship",
+    "greeting",
+    "farewell",
 ]
 
 
@@ -12,7 +14,9 @@ INTENT_KEYWORDS = {
     "performance": ["performance", "improve", "score", "marks", "struggling"],
     "risk": ["risk", "warning", "fail"],
     "weekly_guidance": ["week", "weekly", "focus"],
-    "general_internship": ["internship", "mentor", "guidance"]
+    "general_internship": ["internship", "mentor", "guidance"],
+    "greeting": ["hello", "hi", "hey", "greetings"],
+    "farewell": ["bye", "goodbye", "see you", "later"]
 }
 
 def detect_intent_with_confidence(message: str):
