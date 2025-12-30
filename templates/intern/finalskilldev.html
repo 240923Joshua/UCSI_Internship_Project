@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>InternFlow Student Skill Development</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+            extend: {
+                colors: {
+                "primary": "#38e07b",
+                "background-light": "#f6f8f7",
+                "background-dark": "#122017",
+                "surface-dark": "#1a2c22", 
+                },
+                fontFamily: {
+                "display": ["Spline Sans", "sans-serif"]
+                },
+                borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+            },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Spline Sans', sans-serif;
+        }::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #122017; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #264532; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38e07b; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white h-screen overflow-hidden flex selection:bg-primary selection:text-background-dark">
+<aside class="w-80 h-full flex flex-col bg-background-light dark:bg-[#0e1a12] border-r border-[#e6e8eb] dark:border-[#1e3a29] shrink-0 transition-all duration-300 relative z-20 hidden lg:flex">
+<div class="p-6 pb-2">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center size-10 rounded-xl bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-3xl">hub</span>
+</div>
+<div>
+<h1 class="font-display font-bold text-xl tracking-tight text-[#111418] dark:text-white">InternFlow</h1>
+<p class="text-xs font-medium text-[#637588] dark:text-[#96c5a9]">Student Portal</p>
+</div>
+</div>
+</div>
+<div class="px-4 py-4">
+<div class="bg-gradient-to-br from-primary/20 to-transparent p-4 rounded-xl border border-primary/20 relative overflow-hidden group cursor-pointer transition-all hover:border-primary/40">
+<div class="absolute top-0 right-0 p-2 opacity-50">
+<span class="material-symbols-outlined text-primary animate-pulse">emergency_home</span>
+</div>
+<p class="text-xs uppercase tracking-wider font-bold text-primary mb-1">AI Status: Online</p>
+<p class="text-sm font-medium text-[#111418] dark:text-white/90 leading-tight">Your mentor is analyzing your skill gaps.</p>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+<p class="px-4 py-2 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Menu</p>
+<a class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="group flex items-center justify-between px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">pie_chart</span>
+<span class="font-medium">My Progress</span>
+</div>
+<div class="size-5 rounded-full border-2 border-primary/30 border-t-primary" title="35%"></div>
+</a>
+<a class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">description</span>
+<span class="font-medium">Weekly Reports</span>
+</a>
+<a class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors animate-pulse">smart_toy</span>
+<span class="font-medium">AI Avatar Guidance</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]" href="#">
+<span class="material-symbols-outlined fill-1">school</span>
+<span class="font-medium">Skill Development</span>
+</a>
+<p class="px-4 py-2 mt-4 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Account</p>
+<a class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">person</span>
+<span class="font-medium">Profile</span>
+</a>
+</div>
+<div class="p-4 border-t border-[#e6e8eb] dark:border-[#1e3a29]">
+<div class="flex items-center justify-between gap-3 p-2 rounded-xl bg-[#f0f2f4] dark:bg-[#1a2c22]">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="Student profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDuX_8uJBBMVCEmFZwkSt76lgP-xhED1iynfsiKVsr-omrWfYvSRmL-WJF3ZNJwE2JSbJ3sQ3E4zshGiHqISPyA-rC6dpQgP9NdXE6o6ZoHX3OEwvB_rbhV_FkYgOvVTdPeG86hUhHxO69DCfJ1LM9Fbs7OCE4JZKf0XjgPveHGyYjQEIBQpkraQY7ki_3JSOIrkOVJhwWMz6qmcQR0nIuuTlztcnomxDRlX5uYrOpqcgI8VmzHp0bO-4zMSm_bFGm-Xez-SQ-jcPQ');"></div>
+<div class="flex flex-col">
+<span class="text-sm font-bold text-[#111418] dark:text-white">Alex Morgan</span>
+<span class="text-xs text-[#637588] dark:text-[#96c5a9]">Intern • Tech Dept</span>
+</div>
+</div>
+<button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+</button>
+</div>
+</div>
+</aside>
+<main class="flex-1 h-full overflow-y-auto bg-background-light dark:bg-background-dark relative">
+<div class="max-w-[1200px] mx-auto p-6 md:p-8 flex flex-col gap-8">
+<header class="flex flex-wrap justify-between items-end gap-4">
+<div>
+<h2 class="text-4xl font-black tracking-tight text-[#111418] dark:text-white mb-2">Skill Development</h2>
+<p class="text-[#637588] dark:text-[#96c5a9] text-lg font-medium">Track your growth and discover AI-recommended learning paths.</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-[#264532] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white font-medium shadow-sm">
+<span class="material-symbols-outlined text-[20px] text-primary">military_tech</span>
+<span>Level: Intermediate</span>
+</div>
+</div>
+</header>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<section class="lg:col-span-8 bg-white dark:bg-[#1a2c22] rounded-3xl p-6 md:p-8 shadow-sm border border-[#e6e8eb] dark:border-[#366348] relative overflow-hidden">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-xl font-bold text-[#111418] dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">inventory_2</span>
+                            Current Skill Inventory
+                        </h3>
+<button class="text-xs font-bold text-primary hover:text-primary/80 uppercase tracking-wide">View Full Report</button>
+</div>
+<div class="space-y-6">
+<div>
+<h4 class="text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider mb-3">Technical Skills</h4>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="p-4 rounded-2xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348]">
+<div class="flex justify-between items-center mb-2">
+<span class="font-bold text-[#111418] dark:text-white">Python Programming</span>
+<span class="text-xs px-2 py-1 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium">Advanced</span>
+</div>
+<div class="w-full h-2 bg-gray-200 dark:bg-[#264532] rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 85%"></div>
+</div>
+<div class="flex justify-between mt-1.5 text-xs text-[#637588] dark:text-[#96c5a9]">
+<span>Progress</span>
+<span>85%</span>
+</div>
+</div>
+<div class="p-4 rounded-2xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348]">
+<div class="flex justify-between items-center mb-2">
+<span class="font-bold text-[#111418] dark:text-white">Data Analysis</span>
+<span class="text-xs px-2 py-1 rounded bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 font-medium">Intermediate</span>
+</div>
+<div class="w-full h-2 bg-gray-200 dark:bg-[#264532] rounded-full overflow-hidden">
+<div class="h-full bg-yellow-400 rounded-full" style="width: 60%"></div>
+</div>
+<div class="flex justify-between mt-1.5 text-xs text-[#637588] dark:text-[#96c5a9]">
+<span>Progress</span>
+<span>60%</span>
+</div>
+</div>
+</div>
+</div>
+<div>
+<h4 class="text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider mb-3">Soft Skills</h4>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="p-4 rounded-2xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348]">
+<div class="flex justify-between items-center mb-2">
+<span class="font-bold text-[#111418] dark:text-white">Communication</span>
+<span class="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">Strong</span>
+</div>
+<div class="w-full h-2 bg-gray-200 dark:bg-[#264532] rounded-full overflow-hidden">
+<div class="h-full bg-blue-500 rounded-full" style="width: 92%"></div>
+</div>
+<div class="flex justify-between mt-1.5 text-xs text-[#637588] dark:text-[#96c5a9]">
+<span>Rating</span>
+<span>9.2/10</span>
+</div>
+</div>
+<div class="p-4 rounded-2xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348]">
+<div class="flex justify-between items-center mb-2">
+<span class="font-bold text-[#111418] dark:text-white">Project Management</span>
+<span class="text-xs px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">Developing</span>
+</div>
+<div class="w-full h-2 bg-gray-200 dark:bg-[#264532] rounded-full overflow-hidden">
+<div class="h-full bg-purple-500 rounded-full" style="width: 45%"></div>
+</div>
+<div class="flex justify-between mt-1.5 text-xs text-[#637588] dark:text-[#96c5a9]">
+<span>Rating</span>
+<span>4.5/10</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="lg:col-span-4 flex flex-col gap-6">
+<div class="bg-gradient-to-br from-primary/10 to-primary/5 dark:from-[#264532] dark:to-[#1a2c22] rounded-3xl p-6 md:p-8 shadow-sm border border-primary/20 relative overflow-hidden flex flex-col h-full">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-8xl text-primary">auto_awesome</span>
+</div>
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-4 text-primary font-bold uppercase tracking-wider text-xs">
+<span class="material-symbols-outlined text-sm">smart_toy</span>
+                                AI Recommendation
+                            </div>
+<h3 class="text-2xl font-black text-[#111418] dark:text-white mb-2">Machine Learning Operations (MLOps)</h3>
+<p class="text-sm text-[#637588] dark:text-[#96c5a9] mb-6">Based on your proficiency in Python and recent tasks, MLOps is the next logical step to enhance your internship value.</p>
+<div class="space-y-3 mb-8">
+<div class="flex items-center gap-3 text-sm text-[#111418] dark:text-white/90">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+<span>CI/CD for Machine Learning</span>
+</div>
+<div class="flex items-center gap-3 text-sm text-[#111418] dark:text-white/90">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+<span>Model Monitoring</span>
+</div>
+<div class="flex items-center gap-3 text-sm text-[#111418] dark:text-white/90">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+<span>Cloud Deployment</span>
+</div>
+</div>
+<button class="w-full py-3 rounded-xl bg-primary text-[#122017] font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
+<span>Start Learning Path</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+<section class="lg:col-span-4 bg-white dark:bg-[#1a2c22] rounded-3xl p-6 md:p-8 shadow-sm border border-[#e6e8eb] dark:border-[#366348]">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-xl font-bold text-[#111418] dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">flag</span>
+                            My Goals
+                        </h3>
+<button class="size-8 rounded-full bg-[#f6f8f7] dark:bg-[#122017] hover:bg-primary hover:text-[#122017] text-[#637588] dark:text-[#96c5a9] flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-lg">add</span>
+</button>
+</div>
+<div class="space-y-4">
+<div class="group flex items-start gap-3">
+<input class="mt-1 rounded border-gray-300 text-primary focus:ring-primary dark:border-[#366348] dark:bg-[#122017]" type="checkbox"/>
+<div class="flex-1">
+<p class="text-sm font-bold text-[#111418] dark:text-white group-hover:text-primary transition-colors">Complete Pandas Tutorial</p>
+<p class="text-xs text-[#637588] dark:text-[#96c5a9] mb-1">Due: Nov 05</p>
+<div class="w-full h-1.5 bg-gray-100 dark:bg-[#122017] rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 70%"></div>
+</div>
+</div>
+</div>
+<div class="h-px bg-[#e6e8eb] dark:bg-[#366348]"></div>
+<div class="group flex items-start gap-3">
+<input class="mt-1 rounded border-gray-300 text-primary focus:ring-primary dark:border-[#366348] dark:bg-[#122017]" type="checkbox"/>
+<div class="flex-1">
+<p class="text-sm font-bold text-[#111418] dark:text-white group-hover:text-primary transition-colors">Deploy First Model to AWS</p>
+<p class="text-xs text-[#637588] dark:text-[#96c5a9] mb-1">Due: Nov 12</p>
+<div class="w-full h-1.5 bg-gray-100 dark:bg-[#122017] rounded-full overflow-hidden">
+<div class="h-full bg-orange-400 rounded-full" style="width: 20%"></div>
+</div>
+</div>
+</div>
+<div class="h-px bg-[#e6e8eb] dark:bg-[#366348]"></div>
+<div class="group flex items-start gap-3 opacity-60">
+<input checked="" class="mt-1 rounded border-gray-300 text-primary focus:ring-primary dark:border-[#366348] dark:bg-[#122017]" type="checkbox"/>
+<div class="flex-1">
+<p class="text-sm font-bold text-[#111418] dark:text-white line-through decoration-primary">Submit Week 7 Report</p>
+<p class="text-xs text-primary dark:text-primary font-medium">Completed</p>
+</div>
+</div>
+</div>
+</section>
+<section class="lg:col-span-8 bg-white dark:bg-[#1a2c22] rounded-3xl p-6 md:p-8 shadow-sm border border-[#e6e8eb] dark:border-[#366348]">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-xl font-bold text-[#111418] dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">library_books</span>
+                            Learning Resources
+                        </h3>
+<div class="flex gap-2">
+<span class="px-3 py-1 rounded-full text-xs font-bold bg-primary text-[#122017] cursor-pointer">All</span>
+<span class="px-3 py-1 rounded-full text-xs font-bold bg-[#f6f8f7] dark:bg-[#122017] text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white cursor-pointer transition-colors">Videos</span>
+<span class="px-3 py-1 rounded-full text-xs font-bold bg-[#f6f8f7] dark:bg-[#122017] text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white cursor-pointer transition-colors">Articles</span>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<a class="group flex gap-4 p-4 rounded-2xl bg-[#f6f8f7] dark:bg-[#122017] hover:bg-[#e6e8eb] dark:hover:bg-[#1e3a29] transition-all border border-transparent hover:border-primary/20" href="#">
+<div class="size-20 rounded-xl bg-gray-200 dark:bg-gray-800 bg-cover bg-center shrink-0 relative overflow-hidden">
+<div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all"></div>
+<div class="absolute bottom-1 right-1 bg-black/70 px-1.5 py-0.5 rounded text-[10px] text-white font-bold">12:30</div>
+<span class="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">play_circle</span>
+</div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<h5 class="text-sm font-bold text-[#111418] dark:text-white leading-tight mb-1 group-hover:text-primary transition-colors">Advanced Python Decorators</h5>
+<p class="text-xs text-[#637588] dark:text-[#96c5a9] line-clamp-1">Master functional programming patterns.</p>
+</div>
+<div class="flex items-center gap-2 text-[10px] text-[#637588] dark:text-[#588569] font-bold uppercase tracking-wide">
+<span class="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">Video</span>
+<span>• 2 days ago</span>
+</div>
+</div>
+</a>
+<a class="group flex gap-4 p-4 rounded-2xl bg-[#f6f8f7] dark:bg-[#122017] hover:bg-[#e6e8eb] dark:hover:bg-[#1e3a29] transition-all border border-transparent hover:border-primary/20" href="#">
+<div class="size-20 rounded-xl bg-gray-200 dark:bg-gray-800 shrink-0 relative overflow-hidden flex items-center justify-center">
+<span class="material-symbols-outlined text-4xl text-[#637588] dark:text-[#588569]">article</span>
+</div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<h5 class="text-sm font-bold text-[#111418] dark:text-white leading-tight mb-1 group-hover:text-primary transition-colors">Effective Communication for Developers</h5>
+<p class="text-xs text-[#637588] dark:text-[#96c5a9] line-clamp-1">Tips on writing better documentation and emails.</p>
+</div>
+<div class="flex items-center gap-2 text-[10px] text-[#637588] dark:text-[#588569] font-bold uppercase tracking-wide">
+<span class="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">Article</span>
+<span>• 5 min read</span>
+</div>
+</div>
+</a>
+<a class="group flex gap-4 p-4 rounded-2xl bg-[#f6f8f7] dark:bg-[#122017] hover:bg-[#e6e8eb] dark:hover:bg-[#1e3a29] transition-all border border-transparent hover:border-primary/20" href="#">
+<div class="size-20 rounded-xl bg-gray-200 dark:bg-gray-800 shrink-0 relative overflow-hidden flex items-center justify-center">
+<span class="material-symbols-outlined text-4xl text-[#637588] dark:text-[#588569]">code</span>
+</div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<h5 class="text-sm font-bold text-[#111418] dark:text-white leading-tight mb-1 group-hover:text-primary transition-colors">Interactive SQL Practice</h5>
+<p class="text-xs text-[#637588] dark:text-[#96c5a9] line-clamp-1">Solve real-world database problems.</p>
+</div>
+<div class="flex items-center gap-2 text-[10px] text-[#637588] dark:text-[#588569] font-bold uppercase tracking-wide">
+<span class="px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">Interactive</span>
+<span>• Workshop</span>
+</div>
+</div>
+</a>
+<a class="group flex gap-4 p-4 rounded-2xl bg-[#f6f8f7] dark:bg-[#122017] hover:bg-[#e6e8eb] dark:hover:bg-[#1e3a29] transition-all border border-transparent hover:border-primary/20" href="#">
+<div class="size-20 rounded-xl bg-gray-200 dark:bg-gray-800 bg-cover bg-center shrink-0 relative overflow-hidden">
+<div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all"></div>
+<div class="absolute bottom-1 right-1 bg-black/70 px-1.5 py-0.5 rounded text-[10px] text-white font-bold">45:00</div>
+<span class="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">play_circle</span>
+</div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<h5 class="text-sm font-bold text-[#111418] dark:text-white leading-tight mb-1 group-hover:text-primary transition-colors">Agile Methodologies Crash Course</h5>
+<p class="text-xs text-[#637588] dark:text-[#96c5a9] line-clamp-1">Scrum, Kanban, and Sprint planning basics.</p>
+</div>
+<div class="flex items-center gap-2 text-[10px] text-[#637588] dark:text-[#588569] font-bold uppercase tracking-wide">
+<span class="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">Video</span>
+<span>• 1 week ago</span>
+</div>
+</div>
+</a>
+</div>
+</section>
+</div>
+<div class="flex gap-4 p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 text-blue-900 dark:text-blue-200">
+<span class="material-symbols-outlined shrink-0 mt-0.5">psychology</span>
+<div class="text-sm">
+<span class="font-bold block mb-1">AI Insight</span>
+                    Your consistency in updating skill progress has improved recommendation accuracy by 15%. Keep completing your weekly reports to unlock more personalized resources.
+</div>
+</div>
+</div>
+</main>
+
+</body></html>
