@@ -58,16 +58,41 @@ CREATE TABLE IF NOT EXISTS attendance (
 -- =========================
 CREATE TABLE IF NOT EXISTS weekly_reports (
     report_id INTEGER PRIMARY KEY AUTOINCREMENT,
+
     user_id INTEGER NOT NULL,
     internship_id INTEGER NOT NULL,
-    week_number INTEGER NOT NULL, -- include content and submission date???
-    score REAL NOT NULL
-        CHECK (score >= 0 AND score <= 100),
-    supervisor_feedback TEXT,
-    UNIQUE (internship_id, week_number),
+
+    week_number INTEGER NOT NULL,
+
+    attendance_percentage INTEGER
+        CHECK (attendance_percentage BETWEEN 0 AND 100),
+
+    task_description TEXT NOT NULL,
+
+    focus_skill TEXT NOT NULL,
+
+    skill_rating INTEGER
+        CHECK (skill_rating BETWEEN 1 AND 10),
+
+    stress_level INTEGER
+        CHECK (stress_level BETWEEN 1 AND 5),
+
+    self_evaluation TEXT,
+
+    challenges TEXT,
+
+    next_week_priorities TEXT,
+
+    evidence_link TEXT,
+
+    submitted_at TEXT DEFAULT CURRENT_TIMESTAMP,
+
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (internship_id) REFERENCES internship(internship_id) ON DELETE CASCADE
+    FOREIGN KEY (internship_id) REFERENCES internship(internship_id) ON DELETE CASCADE,
+
+    UNIQUE (user_id, internship_id, week_number)
 );
+
 
 -- =========================
 -- EVIDENCE ATTACHMENTS
