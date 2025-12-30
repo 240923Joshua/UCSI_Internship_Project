@@ -1,10 +1,12 @@
-from flask import Flask,render_template, request, redirect, url_for, session, jsonify
+from flask import Flask,render_template, request, redirect, url_for, session, jsonify, flash
 from db import get_db, calculate_attendance_percentage
 from avatar import get_avatar_response
 from hasher import hash_password, verify_password
-from llm import generate_response, build_avatar_prompt, synthesize_speech
-from intent import detect_intent_with_confidence
+# from llm import generate_response, build_avatar_prompt, synthesize_speech
 from memory import get_last_message, set_last_message
+from datetime import date, datetime, timedelta
+
+from sqlite3 import IntegrityError
 
 app = Flask(__name__)
 app.secret_key = "d2a0fc31b5ca9b05585d76fd607983601efe4bf8980e10c9a40f13e36a3cb2e3"
@@ -13,17 +15,84 @@ def home():
     # return "Backend is running"
     return render_template("home.html")
 
-@app.route("/test-db")
-def test_db():
-    db = get_db()
-    return "Database connection successful" if db else "Database connection failed"
+@app.route("/weekly-report", methods=["POST"])
+def submit_weekly_report():
+    # 🔐 Ensure user is logged in
+    if "user_id" not in session:
+        flash("Please log in first.", "error")
+        return redirect(url_for("login"))
 
-@app.route("/users")
-def select_all_users():
+    user_id = session["user_id"]
+    internship_id = int(request.form["internship_id"])
+
+    # 📥 Read form data
+    attendance_percentage = int(request.form["attendance_percentage"])
+    task_description = request.form["task_description"].strip()
+    focus_skill = request.form["focus_skill"]
+    skill_rating = int(request.form["skill_rating"])
+    stress_level = int(request.form["stress_level"])
+    self_evaluation = request.form.get("self_evaluation", "")
+    challenges = request.form.get("challenges", "")
+    next_week_priorities = request.form.get("priorities", "")
+    evidence_link = request.form.get("evidence_link")
+
+    # 🧠 Calculate week number (based on internship start)
     db = get_db()
-    cursor = db.execute("SELECT * FROM users")
-    users = cursor.fetchall()
-    return {"users": [dict(user) for user in users]}
+    internship = db.execute(
+        "SELECT start_date FROM internship WHERE internship_id = ?",
+        (internship_id,)
+    ).fetchone()
+
+    start_date = datetime.strptime(
+        internship["start_date"], "%Y-%m-%d"
+    ).date()
+
+    today = date.today()
+
+    week_number = ((today - start_date).days // 7) + 1
+    # 🧾 Insert into DB
+    try:
+        db.execute("""
+            INSERT INTO weekly_reports (
+                user_id,
+                internship_id,
+                week_number,
+                attendance_percentage,
+                task_description,
+                focus_skill,
+                skill_rating,
+                stress_level,
+                self_evaluation,
+                challenges,
+                next_week_priorities,
+                evidence_link
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            user_id,
+            internship_id,
+            week_number,
+            attendance_percentage,
+            task_description,
+            focus_skill,
+            skill_rating,
+            stress_level,
+            self_evaluation,
+            challenges,
+            next_week_priorities,
+            evidence_link
+        ))
+
+        db.commit()
+
+    except IntegrityError:
+        flash("Weekly report already submitted for this week.", "warning")
+        return redirect(url_for("intern_dashboard", user_id=user_id))
+
+    # ✅ Success
+    flash("Weekly report submitted successfully!", "success")
+    return redirect(url_for("intern_dashboard", user_id=user_id))
+
 
 @app.route("/attendance/<int:user_id>/<int:internship_id>")
 def attendance_percentage(user_id, internship_id):
@@ -153,6 +222,36 @@ def intern_dashboard(user_id):
     ml_results = cursor.fetchall()
     return render_template("intern/finalinterndashboard.html", internships=internships[0], user_details=user_details,domain=domain,ml_results=ml_results)
 
+@app.route("/intern/weekly-report", methods=["GET"])
+def weekly_report():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    db = get_db()
+    domain=""
+    internships = db.execute("""
+        SELECT internship_id, title, domain
+        FROM internship
+        WHERE user_id = ?
+    """, (user_id,)).fetchall()
+    userdetails = db.execute("""
+        SELECT first_name, last_name
+        FROM user_details
+        WHERE user_id = ?
+    """, (user_id,)).fetchone()
+    for i in internships:
+        domain+=i["domain"]+" • "
+    domain = domain[:-3]
+
+    return render_template(
+        "intern/finalweeklyreport.html",
+        internships=internships,
+        userdetails=userdetails,
+        user_id=user_id,
+        domain=domain
+    )
+
 @app.route("/supervisor/<int:supervisor_id>/dashboard")
 def supervisor_dashboard(supervisor_id):
     if "user_id" not in session or session.get("role") != "supervisor":
@@ -258,7 +357,155 @@ def profile(user_id):
     # else:
     #     internships = [internships[0]]
     #     selected_id = internships[0]["internship_id"]
-    return render_template("intern/final2profile.html", user_details=user_details,internships=internships,domain=domain,dates=dates)
+    return render_template("intern/final2profile.html", user_details=user_details,internships=internships,domain=domain,dates=dates,today=date.today().strftime("%d %b %Y"))
+
+@app.route("/intern/progress")
+def internship_progress():
+    # Auth check
+    if "user_id" not in session or session.get("role") != "intern":
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    db = get_db()
+
+    # 1. Fetch all internships for this intern
+    internships = db.execute(
+        "SELECT * FROM internship WHERE user_id = ?",
+        (user_id,)
+    ).fetchall()
+
+    if not internships:
+        # No internships yet
+        return render_template(
+            "intern/finalinternshipProgress.html",
+            internships=[],
+            selected_internship_id=None,
+            user_details=None,
+            attendance=None,
+            current_week=None
+        )
+
+    selected_internship_id = request.args.get("internship_id")
+
+    if selected_internship_id:
+        selected_internship_id = int(selected_internship_id)
+        selected_internship = next(
+            (i for i in internships if i["internship_id"] == selected_internship_id),
+            None
+        )
+    else:
+        selected_internship = internships[0]
+        selected_internship_id = selected_internship["internship_id"]
+
+    # Safety check (ownership)
+    if not selected_internship:
+        return redirect(url_for("internship_progress"))
+
+    # 3. Fetch user details
+    user_details = db.execute(
+        "SELECT * FROM user_details WHERE user_id = ?",
+        (user_id,)
+    ).fetchone()
+
+    # 4. Attendance calculation (SCOPED TO INTERNSHIP)
+    present_days = db.execute(
+        """
+        SELECT COUNT(*) AS count
+        FROM attendance
+        WHERE user_id = ? AND internship_id = ? AND status = 'Present'
+        """,
+        (user_id, selected_internship_id)
+    ).fetchone()["count"]
+
+    total_days = db.execute(
+        """
+        SELECT COUNT(*) AS count
+        FROM attendance
+        WHERE user_id = ? AND internship_id = ?
+        """,
+        (user_id, selected_internship_id)
+    ).fetchone()["count"]
+
+    absent_days = total_days - present_days
+
+    # 5. Week number calculation
+    start_date = datetime.strptime(
+        selected_internship["start_date"], "%Y-%m-%d"
+    ).date()
+
+    ml_results = db.execute(
+        "SELECT * FROM ml_results WHERE user_id = ? AND internship_id = ? ORDER BY created_at DESC",
+        (user_id, selected_internship_id)
+    ).fetchone()
+
+    today = date.today()
+    current_week = ((today - start_date).days // 7) + 1
+    current_week = min(current_week, selected_internship["weeks"])
+
+    start_date_raw = selected_internship["start_date"]
+    start_date = datetime.strptime(
+        start_date_raw, "%Y-%m-%d"
+    ).date()
+    total_weeks = selected_internship["weeks"]
+    today = date.today()
+
+    current_week_report = db.execute(
+    """
+    SELECT 1
+    FROM weekly_reports
+    WHERE user_id = ? AND internship_id = ? AND week_number = ?
+    """,
+    (user_id, selected_internship_id, current_week)
+    ).fetchone()
+
+    if current_week > total_weeks:
+        report_status = "completed"
+        days_until_due = None
+
+    elif current_week_report:
+        report_status = "submitted"
+        days_until_due = None
+
+    else:
+        report_due_date = start_date + timedelta(days=current_week * 7)
+        days_until_due = (report_due_date - today).days
+        report_status = "pending"
+
+    reports_submitted = db.execute(
+    """
+    SELECT COUNT(*) AS count
+    FROM weekly_reports
+    WHERE user_id = ? AND internship_id = ?
+    """,
+    (user_id, selected_internship_id)
+    ).fetchone()["count"]
+    domain=""
+    for i in internships:
+        domain+=i["domain"]+" • "
+    domain = domain[:-3]
+
+    progress_stats = {
+    "present_days": present_days,
+    "absent_days": absent_days,
+    "total_days": total_days,
+    "attendance_percentage": round((present_days / total_days) * 100, 2) if total_days > 0 else 0,
+    "current_week": current_week,
+    "reports_submitted": reports_submitted,
+    "total_weeks": selected_internship["weeks"],
+    "report_status": report_status,
+    "days_until_due": days_until_due,
+    "domain": domain
+}
+    return render_template(
+        "intern/finalinternshipProgress.html",
+        internships=internships,
+        selected_internship_id=selected_internship_id,
+        selected_internship=selected_internship,
+        progress_stats=progress_stats,
+        user_details=user_details,
+        user_id=user_id,
+        ml_results=ml_results
+    )
 
 @app.route("/avatar/chat", methods=["POST"])
 def avatar_chat():
@@ -267,49 +514,38 @@ def avatar_chat():
     user_id = data.get("user_id")
     internship_id = data.get("internship_id")
     user_message = data.get("message")
-
-    intent_result = detect_intent_with_confidence(user_message)
-
-    if intent_result["confidence"] == "none":
-        return jsonify({
-            "reply": "I can help with internship-related topics like attendance, performance, and weekly progress. Please ask something related to your internship."
-        })
-
-    if intent_result["confidence"] == "low":
-        return jsonify({
-            "reply": "Could you clarify your question? Are you asking about attendance, performance, risk level, or weekly guidance?"
-        })
-
     db = get_db()
 
-    # 1️⃣ Fetch internship domain
+    # Fetch internship domain
     internship = db.execute(
         "SELECT domain FROM internship WHERE internship_id = ?",
         (internship_id,)
     ).fetchone()
 
     if not internship:
+        synthesize_speech("Invalid internship.", output_file="response.wav")
         return jsonify({"reply": "Invalid internship."}), 400
 
     domain = internship["domain"]
 
-    # 2️⃣ Fetch attendance
+    # Fetch attendance
     attendance_percentage = calculate_attendance_percentage(
         db, user_id, internship_id
     )
 
-    # 3️⃣ Fetch ML result
+    # Fetch ML result
     ml_result = db.execute(
         "SELECT predicted_score, risk_level FROM ml_results WHERE user_id = ? AND internship_id = ?",
         (user_id, internship_id)
     ).fetchone()
 
     if attendance_percentage is None or not ml_result:
+        synthesize_speech("I need more performance data before I can guide you properly.", output_file="response.wav")
         return jsonify({
             "reply": "I need more performance data before I can guide you properly."
         })
 
-    # 4️⃣ Build prompt
+    # Build prompt
     prompt = build_avatar_prompt(
         attendance_percentage,
         ml_result["predicted_score"],
@@ -319,14 +555,14 @@ def avatar_chat():
         memory=get_last_message(user_id, internship_id)
     )
 
-    # 5️⃣ Generate response
+    # Generate response
     reply = generate_response(prompt)
-    # 6️⃣ Store last message in memory
+    # Store last message in memory
     synthesize_speech(reply, output_file="response.wav")
-    set_last_message(user_id, internship_id, reply)
+    set_last_message(user_id, internship_id, reply, user_message)
 
     return jsonify({"reply": reply})
 
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=True, use_reloader=True)

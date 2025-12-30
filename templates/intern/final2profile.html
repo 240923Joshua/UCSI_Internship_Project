@@ -73,14 +73,14 @@
 <span class="material-symbols-outlined group-hover:text-primary transition-colors">dashboard</span>
 <span class="font-medium">Dashboard</span>
 </a>
-<a class="group flex items-center justify-between px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<a href="{{ url_for('internship_progress') }}"class="group flex items-center justify-between px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
 <div class="flex items-center gap-3">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors">pie_chart</span>
 <span class="font-medium">My Progress</span>
 </div>
 <div class="size-5 rounded-full border-2 border-primary/30 border-t-primary" title="35%"></div>
 </a>
-<a class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<a href="{{url_for('weekly_report')}}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors">description</span>
 <span class="font-medium">Weekly Reports</span>
 </a>
@@ -107,9 +107,11 @@
 <span class="text-xs text-[#637588] dark:text-[#96c5a9]">Intern • {{ domain }} </span>
 </div>
 </div>
+<a href="{{ url_for('logout') }}">
 <button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
 <span class="material-symbols-outlined text-[20px]">logout</span>
 </button>
+</a>
 </div>
 </div>
 </aside>
@@ -123,7 +125,7 @@
 <div class="flex items-center gap-3">
 <button class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-[#264532] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white font-medium hover:bg-[#f0f2f4] dark:hover:bg-[#366348] transition-colors shadow-sm">
 <span class="material-symbols-outlined text-[20px]">calendar_today</span>
-<span>Oct 24, 2023</span>
+<span>{{today}}</span>
 </button>
 <button class="flex items-center justify-center size-12 rounded-full bg-primary text-[#122017] hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
 <span class="material-symbols-outlined">notifications</span>
