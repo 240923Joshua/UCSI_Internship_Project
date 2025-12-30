@@ -2,66 +2,66 @@ import sqlite3
 import pandas as pd
 import numpy as np
 
-DB_PATH = r"C:\Users\PROBOOK\Downloads\internship (1).db"
+DB_PATH = r"C:\Users\PROBOOK\Downloads\internship (4).db"
 
 MIN_WEEKLY_SCORES = 2
-MIN_ATTENDANCE_DAYS = 2
 
 conn = sqlite3.connect(DB_PATH)
+
 
 def predict(user_id, internship_id):
 
     weekly_df = pd.read_sql("""
-        SELECT week_number, score
+        SELECT week_number, attendance_percentage, skill_rating
         FROM weekly_reports
         WHERE user_id = ? AND internship_id = ?
         ORDER BY week_number
     """, conn, params=(user_id, internship_id))
 
-    attendance_df = pd.read_sql("""
-        SELECT status
-        FROM attendance
-        WHERE user_id = ? AND internship_id = ?
-    """, conn, params=(user_id, internship_id))
-
-    total_days = len(attendance_df)
-    present_days = len(attendance_df[attendance_df["status"].str.lower() == "present"])
-
-    if len(weekly_df) < MIN_WEEKLY_SCORES or total_days < MIN_ATTENDANCE_DAYS:
-        print("Prediction not possible: insufficient data.")
+    if len(weekly_df) < MIN_WEEKLY_SCORES:
         return None
 
-    attendance_percentage = present_days / total_days
+    # Ensure numeric
+    weekly_df["attendance_percentage"] = pd.to_numeric(
+        weekly_df["attendance_percentage"], errors="coerce"
+    )
+    weekly_df["skill_rating"] = pd.to_numeric(
+        weekly_df["skill_rating"], errors="coerce"
+    )
 
-    # Ensure numeric scores
-    weekly_df["score"] = pd.to_numeric(weekly_df["score"], errors="coerce")
-    weekly_df = weekly_df.dropna(subset=["score"])
+    weekly_df.dropna(inplace=True)
 
-    scores = weekly_df["score"].values
+    if len(weekly_df) < MIN_WEEKLY_SCORES:
+        return None
 
-    # ---- SAFE TREND CALCULATION ----
-    # Use average improvement instead of extrapolation
+    # 🔹 SCALE skill rating from 1–10 → 0–100
+    scores = weekly_df["skill_rating"].values * 10
+    attendance = weekly_df["attendance_percentage"].values / 100
+
+    # ---- TREND CALCULATION ----
     deltas = np.diff(scores)
-    avg_delta = np.mean(deltas)
+    avg_delta = np.mean(deltas) * 0.6  # dampened trend
 
-    # Damp the trend (prevents runaway growth)
-    avg_delta *= 0.6
+    last_score = scores[-1]
+    avg_attendance = np.mean(attendance)
 
-    predicted_score = scores[-1] + avg_delta
+    # Predict next score
+    predicted_score = last_score + avg_delta
 
-    # Attendance penalty (strong effect)
-    predicted_score *= attendance_percentage
+    # Attendance impact
+    predicted_score *= avg_attendance
 
-    # Absolute bounds
-    predicted_score = max(0, min(100, predicted_score))
+    # 🔒 FINAL CLAMP (ABSOLUTE SAFETY)
+    predicted_score = np.clip(predicted_score, 0, 100)
 
-    return round(predicted_score, 2)
+    return round(float(predicted_score), 2)
 
 
 def set_predict(user_id, internship_id):
 
     predicted_score = predict(user_id, internship_id)
     if predicted_score is None:
+        print("Not enough data to predict.")
         return None
 
     if predicted_score < 50:
@@ -86,7 +86,7 @@ def set_predict(user_id, internship_id):
 
 
 # Example usage
-result = set_predict(3, 1)
+result = set_predict(100001, 3)
 print("Predicted Score:", result)
 
 conn.close()
