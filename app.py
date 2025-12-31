@@ -373,7 +373,7 @@ def weekly_report(internship_id, week):
    
 
     return render_template(
-    "intern/finalweeklyreport.html",
+    "intern/weeklyReport.html",
     internships=all_internships,
     selected_internship_id=internship_id,
     current_week=current_week,
