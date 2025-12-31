@@ -1,5 +1,5 @@
 import csv,io
-from flask import Flask,render_template, request, redirect, url_for, session, jsonify, flash,make_response
+from flask import Flask,render_template, request, redirect, url_for, session, jsonify, flash,make_response,abort
 from db import get_db, calculate_attendance_percentage
 from avatar import get_avatar_response
 from hasher import hash_password, verify_password
@@ -73,86 +73,6 @@ def myProgressPercentage(db, user_id):
     if internships == 0:
         return 0
     return round(ml_results / internships,2)
-
-
-@app.route("/weekly-report", methods=["POST"])
-def submit_weekly_report():
-    # 🔐 Ensure user is logged in
-    if "user_id" not in session:
-        flash("Please log in first.", "error")
-        return redirect(url_for("login"))
-
-    user_id = session["user_id"]
-    internship_id = int(request.form["internship_id"])
-
-    # 📥 Read form data
-    attendance_percentage = int(request.form["attendance_percentage"])
-    task_description = request.form["task_description"].strip()
-    focus_skill = request.form["focus_skill"]
-    skill_rating = int(request.form["skill_rating"])
-    stress_level = int(request.form["stress_level"])
-    self_evaluation = request.form.get("self_evaluation", "")
-    challenges = request.form.get("challenges", "")
-    next_week_priorities = request.form.get("priorities", "")
-    evidence_link = request.form.get("evidence_link")
-
-    # 🧠 Calculate week number (based on internship start)
-    db = get_db()
-    internship = db.execute(
-        "SELECT start_date FROM internship WHERE internship_id = ?",
-        (internship_id,)
-    ).fetchone()
-
-    start_date = datetime.strptime(
-        internship["start_date"], "%Y-%m-%d"
-    ).date()
-
-    today = date.today()
-
-    week_number = ((today - start_date).days // 7) + 1
-    # 🧾 Insert into DB
-    try:
-        db.execute("""
-            INSERT INTO weekly_reports (
-                user_id,
-                internship_id,
-                week_number,
-                attendance_percentage,
-                task_description,
-                focus_skill,
-                skill_rating,
-                stress_level,
-                self_evaluation,
-                challenges,
-                next_week_priorities,
-                evidence_link
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            user_id,
-            internship_id,
-            week_number,
-            attendance_percentage,
-            task_description,
-            focus_skill,
-            skill_rating,
-            stress_level,
-            self_evaluation,
-            challenges,
-            next_week_priorities,
-            evidence_link
-        ))
-
-        db.commit()
-
-    except IntegrityError:
-        flash("Weekly report already submitted for this week.", "warning")
-        return redirect(url_for("intern_dashboard", user_id=user_id))
-
-    # ✅ Success
-    flash("Weekly report submitted successfully!", "success")
-    return redirect(url_for("intern_dashboard", user_id=user_id))
-
 
 @app.route("/attendance/<int:user_id>/<int:internship_id>")
 def attendance_percentage(user_id, internship_id):
@@ -282,36 +202,224 @@ def intern_dashboard(user_id):
     ml_results = cursor.fetchall()
     return render_template("intern/finalinterndashboard.html", internships=internships[0], user_details=user_details,domain=domain,ml_results=ml_results)
 
-@app.route("/intern/weekly-report", methods=["GET"])
-def weekly_report():
-    if "user_id" not in session:
+@app.route(
+    "/intern/weekly-report/<int:internship_id>/<int:week>",
+    methods=["GET", "POST"]
+)
+def weekly_report(internship_id, week):
+    if "user_id" not in session or session.get("role") != "intern":
         return redirect(url_for("login"))
 
     user_id = session["user_id"]
     db = get_db()
+
+    # Ownership check
+    internship = db.execute(
+        "SELECT * FROM internship WHERE internship_id = ? AND user_id = ?",
+        (internship_id, user_id)
+    ).fetchone()
+
+    if not internship:
+        abort(403)
+    
+    start_date = datetime.strptime(internship["start_date"], "%Y-%m-%d").date()
+    today = date.today()
+
+    current_week = ((today - start_date).days // 7) + 1
+    current_week = min(current_week, internship["weeks"])
+
+    if week > current_week or week < 1:
+        abort(400)
+
+    action = request.form.get("action") if request.method == "POST" else None
+
+    existing = db.execute("""
+        SELECT status
+        FROM weekly_reports
+        WHERE user_id = ? AND internship_id = ? AND week_number = ?
+    """, (user_id, internship_id, week)).fetchone()
+
+    if existing and existing["status"] == "submitted" and action == "submit":
+        flash("Weekly report already submitted for this week.", "warning")
+        return redirect(
+            url_for("internship_progress", internship_id=internship_id)
+        )
+    start_date = internship["start_date"]
+
+    # Convert string → date (only once)
+    if isinstance(start_date, str):
+        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+
+    week_start = start_date + timedelta(days=(week - 1) * 7)
+    week_end = week_start + timedelta(days=6)
+
+    reportPeriod = f"{week_start.strftime('%d %b %Y')} - {week_end.strftime('%d %b %Y')}"
+    cursor = db.execute("""
+        SELECT
+            COUNT(*) as total_days,
+            SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as present_days
+        FROM attendance
+        WHERE user_id = ?
+        AND internship_id = ?
+        AND date BETWEEN ? AND ?
+    """, (user_id, internship_id, week_start, week_end))
+
+    row = cursor.fetchone()
+
+    attendance_percentage = (
+        round((row["present_days"] / row["total_days"]) * 100)
+        if row["total_days"] > 0 else 0
+    )
+    if request.method == "POST":
+        status = "draft" if action == "draft" else "submitted"
+
+        if existing:
+            if existing["status"] == "submitted":
+                flash("Weekly report already submitted for this week.", "warning")
+                return redirect(url_for("internship_progress", internship_id=internship_id))
+
+            # UPDATE existing (draft → draft OR draft → submit)
+            db.execute("""
+                UPDATE weekly_reports
+                SET
+                    attendance_percentage = ?,
+                    task_description = ?,
+                    focus_skill = ?,
+                    skill_rating = ?,
+                    stress_level = ?,
+                    self_evaluation = ?,
+                    challenges = ?,
+                    next_week_priorities = ?,
+                    evidence_link = ?,
+                    status = ?
+                WHERE user_id = ? AND internship_id = ? AND week_number = ?
+            """, (
+                attendance_percentage,
+                request.form["task_description"].strip(),
+                request.form["focus_skill"],
+                int(request.form["skill_rating"]),
+                int(request.form["stress_level"]),
+                request.form.get("self_evaluation", ""),
+                request.form.get("challenges", ""),
+                request.form.get("priorities", ""),
+                request.form.get("evidence_link"),
+                status,
+                user_id,
+                internship_id,
+                week
+            ))
+
+        else:
+            # INSERT brand new
+            db.execute("""
+                INSERT INTO weekly_reports (
+                    user_id, internship_id, week_number,
+                    attendance_percentage, task_description,
+                    focus_skill, skill_rating, stress_level,
+                    self_evaluation, challenges,
+                    next_week_priorities, evidence_link, status
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                user_id, internship_id, week,
+                attendance_percentage,
+                request.form["task_description"].strip(),
+                request.form["focus_skill"],
+                int(request.form["skill_rating"]),
+                int(request.form["stress_level"]),
+                request.form.get("self_evaluation", ""),
+                request.form.get("challenges", ""),
+                request.form.get("priorities", ""),
+                request.form.get("evidence_link"),
+                status
+            ))
+
+        db.commit()
+
+        if status == "draft":
+            flash("Draft saved successfully.", "info")
+        else:
+            flash("Weekly report submitted successfully!", "success")
+            return redirect(url_for("internship_progress", internship_id=internship_id))
+    skills = db.execute("""
+    SELECT s.name
+    FROM skills s
+    JOIN domain_skills ds ON ds.skill_id = s.skill_id
+    WHERE ds.domain = ?
+    ORDER BY s.name
+    """, (internship["domain"],)).fetchall()
     domain=""
     internships = db.execute("""
-        SELECT internship_id, title, domain
+        SELECT domain
         FROM internship
         WHERE user_id = ?
     """, (user_id,)).fetchall()
-    userdetails = db.execute("""
-        SELECT first_name, last_name
-        FROM user_details
-        WHERE user_id = ?
-    """, (user_id,)).fetchone()
     for i in internships:
         domain+=i["domain"]+" • "
     domain = domain[:-3]
+    due_date = start_date + timedelta(days=current_week * 7)
+
+    all_internships = db.execute(
+    "SELECT internship_id, title, domain FROM internship WHERE user_id = ?",
+    (user_id,)).fetchall()
+
+    existing_report = db.execute(
+    """
+    SELECT *
+    FROM weekly_reports
+    WHERE user_id = ? AND internship_id = ? AND week_number = ?
+    """,(user_id, internship_id, week)).fetchone()
+
+   
 
     return render_template(
-        "intern/finalweeklyreport.html",
-        internships=internships,
-        userdetails=userdetails,
-        user_id=user_id,
-        domain=domain,
-        progress_percentage=myProgressPercentage(db, user_id)
-    )
+    "intern/finalweeklyreport.html",
+    internships=all_internships,
+    selected_internship_id=internship_id,
+    current_week=current_week,
+    userdetails=db.execute(
+        "SELECT first_name, last_name FROM user_details WHERE user_id = ?",
+        (user_id,)
+    ).fetchone(),
+    domain=domain,
+    progress_percentage=myProgressPercentage(db, user_id),
+    user_id=user_id,
+    due_date=due_date.strftime("%d %b %Y"),
+    existing_report=existing_report,
+    reportPeriod=reportPeriod,
+    attendance_percentage=attendance_percentage,
+    skills=skills
+)
+
+@app.route("/intern/weekly-report/redirect/<int:internship_id>")
+def weekly_report_redirect(internship_id):
+    if "user_id" not in session or session.get("role") != "intern":
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    db = get_db()
+
+    internship = db.execute(
+        "SELECT * FROM internship WHERE internship_id = ? AND user_id = ?",
+        (internship_id, user_id)
+    ).fetchone()
+
+    if not internship:
+        abort(403)
+
+    start_date = datetime.strptime(
+        internship["start_date"], "%Y-%m-%d"
+    ).date()
+
+    today = date.today()
+    current_week = ((today - start_date).days // 7) + 1
+    current_week = min(current_week, internship["weeks"])
+
+    return redirect(url_for(
+        "weekly_report",
+        internship_id=internship_id,
+        week=current_week
+    ))
 
 @app.route("/supervisor/<int:supervisor_id>/dashboard")
 def supervisor_dashboard(supervisor_id):
@@ -402,6 +510,33 @@ def profile(user_id):
     internships = cursor.fetchall()
     domain=""
     dates=[]
+    internship = db.execute(
+        """
+        SELECT * FROM internship
+        WHERE user_id = ?
+        ORDER BY start_date DESC
+        LIMIT 1
+        """,
+        (user_id,)
+    ).fetchone()
+
+    if not internship:
+        abort(404)
+
+    internship_id = internship["internship_id"]
+    start_date = datetime.strptime(
+        internship["start_date"], "%Y-%m-%d"
+    ).date()
+
+    today = date.today()
+    current_week = ((today - start_date).days // 7) + 1
+    current_week = max(1, current_week)
+
+    weeklyReportRedirect = {
+        "internship_id": internship_id,
+        "week": current_week
+    }
+    print(weeklyReportRedirect)
     for i in internships:
         domain+=i["domain"]+" • "
         start_split = i["start_date"].split("-")
@@ -410,21 +545,14 @@ def profile(user_id):
         end_formatted = f"{month[end_split[1]]} {int(end_split[2])}, {end_split[0]}"
         dates.append(f"{start_formatted} — {end_formatted}")
     domain = domain[:-3]  # Remove trailing separator
-    # selected_id = request.args.get("internship_id")
-    # print(selected_id)
-    # if selected_id:
-    #     selected_id = int(selected_id)
-    #     internships = [i for i in internships if i["internship_id"] == selected_id]
-    # else:
-    #     internships = [internships[0]]
-    #     selected_id = internships[0]["internship_id"]
     return render_template("intern/final2profile.html", 
     user_details=user_details,
     internships=internships,
     domain=domain,
     dates=dates,
     today=date.today().strftime("%d %b %Y"),
-    progress_percentage=myProgressPercentage(db, user_id)
+    progress_percentage=myProgressPercentage(db, user_id),
+    weeklyReportRedirect=weeklyReportRedirect
     )
 
 @app.route("/intern/export-report/<int:internship_id>")
@@ -725,6 +853,10 @@ def internship_progress():
     }
     if len(skill_trend) < 2:
         progress_stats["skill_trend_normalized"] = []
+    weeklyReportRedirect = {
+        "internship_id": selected_internship_id,
+        "week": current_week
+    }
     return render_template(
         "intern/internshipProgress.html",
         internships=internships,
@@ -736,7 +868,8 @@ def internship_progress():
         ml_results=ml_results,
         skill_stats=skill_stats,
         outstanding_tasks=outstanding_tasks,
-        progress_percentage=progress_percentage
+        progress_percentage=progress_percentage,
+        weeklyReportRedirect=weeklyReportRedirect
     )
 
 @app.route("/intern/skills")

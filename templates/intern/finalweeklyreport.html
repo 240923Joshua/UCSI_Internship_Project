@@ -45,7 +45,59 @@
         }
     </style>
 </head>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const messages = document.querySelectorAll(".flash-message");
+
+    messages.forEach((msg, index) => {
+      // Stagger slide-in
+      setTimeout(() => {
+        msg.classList.add("show");
+      }, index * 120);
+
+      // Auto-dismiss after 3s
+      setTimeout(() => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+
+        setTimeout(() => {
+          msg.remove();
+        }, 500);
+      }, 3000 + index * 120);
+
+      // Click to dismiss early
+      msg.addEventListener("click", () => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+
+        setTimeout(() => {
+          msg.remove();
+        }, 300);
+      });
+    });
+  });
+</script>
 <body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white h-screen overflow-hidden flex selection:bg-primary selection:text-background-dark">
+<div id="flash-container"
+     class="fixed top-6 right-6 z-50 space-y-3 pointer-events-none">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div
+        class="flash-message pointer-events-auto
+               px-5 py-4 rounded-xl shadow-lg text-sm font-medium
+               transform translate-x-20 opacity-0
+               transition-all duration-500 ease-out
+               {% if category == 'success' %}bg-green-600 text-white{% endif %}
+               {% if category == 'warning' %}bg-yellow-400 text-black{% endif %}
+               {% if category == 'error' %}bg-red-600 text-white{% endif %}"
+      >
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+</div>
 <aside class="w-80 h-full flex flex-col bg-background-light dark:bg-[#0e1a12] border-r border-[#e6e8eb] dark:border-[#1e3a29] shrink-0 transition-all duration-300 relative z-20">
 <div class="p-6 pb-2">
 <div class="flex items-center gap-3">
@@ -139,34 +191,42 @@
 <header class="flex flex-wrap justify-between items-end gap-4">
 <div>
 <h2 class="text-4xl font-black tracking-tight text-[#111418] dark:text-white mb-2">Weekly Report</h2>
-<p class="text-[#637588] dark:text-[#96c5a9] text-lg font-medium">Submit your progress for Week 8. Our AI will analyze your tasks.</p>
+<p class="text-[#637588] dark:text-[#96c5a9] text-lg font-medium">Submit your progress for Week <span class="font-semibold">{{ current_week }}</span></p>
 </div>
 <div class="flex items-center gap-3">
 <div class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-[#264532] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white font-medium shadow-sm">
 <span class="material-symbols-outlined text-[20px] text-primary">date_range</span>
-<span>Due: Oct 30, 2023</span>
+<span>Due date: {{ due_date }}</span>
 </div>
 </div>
 </header>
 <section class="bg-white dark:bg-[#1a2c22] rounded-3xl p-6 md:p-8 shadow-sm border border-[#e6e8eb] dark:border-[#366348] relative overflow-hidden">
 <div class="absolute -top-20 -right-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
-<form class="flex flex-col gap-8 relative z-10" method="post" action="/weekly-report">
-    <div>
-  <label class="block text-sm font-medium mb-2">
-    Select Internship
-  </label>
-<select
-  name="internship_id"
-  required
-  class="relative z-50 pointer-events-auto w-full border rounded px-3 py-2 bg-white text-black"
+<form
+  method="post"
+  action="{{ url_for(
+    'weekly_report',
+    internship_id=selected_internship_id,
+    week=current_week
+  ) }}"
 >
-    <option value="" disabled selected>
-      Choose your internship
-    </option>
-
-    {% for internship in internships %}
-      <option value="{{ internship.internship_id }}">
-        {{ internship.title }} ({{ internship.domain }})
+<div class="relative">
+  <select
+    class="internship-select
+           w-full px-5 py-4 pr-12
+           rounded-full
+           bg-white dark:bg-[#0f1f17]
+           text-[#111418] dark:text-white
+           border border-[#2d4f3a]
+           focus:outline-none focus:ring-2 focus:ring-green-500
+           appearance-none"
+    onchange="handleInternshipChange(this)"
+  >
+    {% for i in internships %}
+      <option value="{{ i.internship_id }}"
+        {% if i.internship_id == selected_internship_id %}selected{% endif %}
+      >
+        {{ i.title }}
       </option>
     {% endfor %}
   </select>
@@ -177,7 +237,7 @@
 <span class="material-symbols-outlined text-lg text-primary">calendar_today</span>
                                 Report Period
                             </label>
-<input class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#637588] dark:text-[#96c5a9] font-medium focus:outline-none cursor-not-allowed" readonly="" type="text" value="Oct 23, 2023 — Oct 29, 2023"/>
+<input class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#637588] dark:text-[#96c5a9] font-medium focus:outline-none cursor-not-allowed" readonly="" type="text" value="{{ reportPeriod }}"/>
 </div>
 <div class="flex flex-col gap-2">
 <label class="text-sm font-bold text-[#111418] dark:text-white uppercase tracking-wider flex items-center gap-2">
@@ -185,8 +245,15 @@
                                 Attendance (%)
                             </label>
 <div class="flex items-center gap-4 px-5 py-3 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] focus-within:border-primary transition-colors">
-<input name="attendance_percentage" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-[#264532] accent-primary" max="100" min="0" type="range" value="100"/>
-<span class="min-w-[3rem] text-right font-bold text-[#111418] dark:text-white">100%</span>
+<input name="attendance_percentage" 
+class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-[#264532] accent-primary" 
+max="100" 
+min="0" 
+type="range"
+required
+value="{{ existing_report.attendance_percentage if existing_report else attendance_percentage }}"
+disabled/>
+<span class="min-w-[3rem] text-right font-bold text-[#111418] dark:text-white">{{ attendance_percentage }}%</span>
 </div>
 </div>
 </div>
@@ -196,7 +263,12 @@
                             Task Description
                         </label>
 <p class="text-xs text-[#637588] dark:text-[#96c5a9] mb-1">Detail the projects and tickets you worked on. This data trains the ML model to suggest relevant resources.</p>
-<textarea name="task_description"class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" placeholder="e.g. Completed the frontend integration for the user dashboard. Debugged API latency issues in the Python backend..." rows="6"></textarea>
+<textarea name="task_description"
+class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" 
+placeholder="e.g. Completed the frontend integration for the user dashboard. Debugged API latency issues in the Python backend..." 
+rows="6"
+required
+>{{ existing_report.task_description if existing_report else "" }}</textarea>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 <div class="flex flex-col gap-2">
@@ -205,14 +277,14 @@
                                 Focus Skill
                             </label>
 <div class="relative">
-<select name="focus_skill"class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all cursor-pointer">
-<option>Python Programming</option>
-<option>Machine Learning Concepts</option>
-<option>Data Visualization</option>
-<option>Project Management</option>
-<option>Communication</option>
+<select name="focus_skill"class="bg-none w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all cursor-pointer">
+  {% for skill in skills %}
+    <option value="{{ skill.name }}">
+      {{ skill.name }}
+    </option>
+  {% endfor %}
 </select>
-<span class="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-[#637588] pointer-events-none">expand_more</span>
+<span class="appearance-none material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-[#637588] pointer-events-none">expand_more</span>
 </div>
 </div>
 <div class="flex flex-col gap-2">
@@ -221,18 +293,17 @@
                                 Skill Rating (1-10)
                             </label>
 <div class="relative">
-<select name="skill_rating" class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all cursor-pointer">
+<select name="skill_rating" 
+class="bg-none w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all cursor-pointer"
+required>
 <option disabled="" selected="" value="">Select rating...</option>
-<option value="1">1 - Novice</option>
-<option value="2">2</option>
-<option value="3">3</option>
-<option value="4">4</option>
-<option value="5">5 - Competent</option>
-<option value="6">6</option>
-<option value="7">7</option>
-<option value="8">8</option>
-<option value="9">9</option>
-<option value="10">10 - Expert</option>
+  {% for i in range(1, 11) %}
+    <option value="{{ i }}"
+      {% if existing_report and existing_report.skill_rating == i %}selected{% endif %}
+    >
+      {{ i }}
+    </option>
+  {% endfor %}
 </select>
 <span class="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-[#637588] pointer-events-none">expand_more</span>
 </div>
@@ -244,16 +315,19 @@
         Stress Level This Week (1-5)
     </label>
 <div class="flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] focus-within:border-primary transition-colors">
-<input   name="stress_level"
+<span class="flex justify-between w-full sm:w-auto sm:min-w-[8rem] text-xs font-medium text-[#637588] dark:text-[#96c5a9]">Low (1)</span>
+    <input   name="stress_level"
   min="1"
   max="5"
-  value="3" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-[#264532] accent-primary" max="5" min="1" step="1" type="range" value="3"/>
+  value="{{ existing_report.stress_level if existing_report else 3 }}" 
+  class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-[#264532] accent-primary" 
+  step="1" type="range" required/>
 <div class="flex justify-between w-full sm:w-auto sm:min-w-[8rem] text-xs font-medium text-[#637588] dark:text-[#96c5a9]">
-<span>Low (1)</span>
+
 <span class="font-bold text-lg text-[#111418] dark:text-white sm:hidden">3</span>
 <span>High (5)</span>
 </div>
-<span class="hidden sm:inline font-bold text-[#111418] dark:text-white text-lg ml-2">3</span>
+<span class="hidden sm:inline font-bold text-[#111418] dark:text-white text-lg ml-2"></span>
 </div>
 </div>
 <div class="flex flex-col gap-2">
@@ -261,52 +335,58 @@
 <span class="material-symbols-outlined text-lg text-primary">person_check</span>
                             Self-Evaluation
                         </label>
-<textarea name="self_evaluation" class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" placeholder="Reflect on your performance. What went well?" rows="4"></textarea>
+<textarea name="self_evaluation"
+ class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
+  placeholder="Reflect on your performance. What went well?" 
+  rows="4" required>{{ existing_report.self_evaluation if existing_report else '' }}</textarea>
 </div>
 <div class="flex flex-col gap-2">
 <label class="text-sm font-bold text-[#111418] dark:text-white uppercase tracking-wider flex items-center gap-2">
 <span class="material-symbols-outlined text-lg text-primary">warning</span>
         Challenges This Week
     </label>
-<textarea name="challenges" class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" placeholder="Describe any difficulties or obstacles you encountered..." rows="3"></textarea>
+<textarea name="challenges"
+class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" 
+placeholder="Describe any difficulties or obstacles you encountered..." rows="3">{{ existing_report.challenges if existing_report else '' }}</textarea>
 </div>
 <div class="flex flex-col gap-2">
 <label class="text-sm font-bold text-[#111418] dark:text-white uppercase tracking-wider flex items-center gap-2">
 <span class="material-symbols-outlined text-lg text-primary">flag</span>
         Priorities of Next Week
     </label>
-<textarea name="priorities" class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" placeholder="Outline your main goals and tasks for the upcoming week..." rows="3"></textarea>
+<textarea name="priorities"
+class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" 
+placeholder="Outline your main goals and tasks for the upcoming week..." rows="3">{{ existing_report.next_week_priorities if existing_report else "" }}</textarea>
 </div>
 <div class="flex flex-col gap-2">
-<label class="text-sm font-bold text-[#111418] dark:text-white uppercase tracking-wider flex items-center gap-2">
+<label class="text-sm font-bold text-[#111418] dark:text-white uppercase tracking-wider flex items-center gap-2 col-span-1 md:col-span-2">
 <span class="material-symbols-outlined text-lg text-primary">attach_file</span>
                             Evidence Upload / Link
                         </label>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[#e6e8eb] dark:border-[#366348] rounded-xl cursor-pointer bg-[#f6f8f7] dark:bg-[#122017] hover:bg-white dark:hover:bg-[#1a2c22] hover:border-primary transition-all group">
-<div class="flex flex-col items-center justify-center pt-5 pb-6">
-<span class="material-symbols-outlined text-3xl text-[#637588] dark:text-[#588569] group-hover:text-primary mb-2 transition-colors">cloud_upload</span>
-<p class="text-sm text-[#637588] dark:text-[#96c5a9] font-medium">Click to upload document</p>
-<p class="text-xs text-[#637588] dark:text-[#588569] mt-1">PDF, DOCX, or JPG (MAX. 5MB)</p>
-</div>
-<input class="hidden" type="file"/>
-</label>
 <div class="flex flex-col gap-2 h-full">
 <div class="relative h-full">
 <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
 <span class="material-symbols-outlined text-[#637588]">link</span>
 </div>
-<input type="url" name="evidence_link" class="w-full h-full pl-12 pr-4 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="Paste external link (GitHub, Figma, etc.)" type="url"/>
+<input type="url" 
+name="evidence_link" 
+class="w-full h-full pl-12 pr-4 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+placeholder="Paste external link (GitHub, Figma, etc.)" value="{{ existing_report.evidence_link if existing_report else '' }}" type="url"required/>
 </div>
 </div>
 </div>
 </div>
 <div class="flex items-center justify-between pt-4 mt-2 border-t border-[#e6e8eb] dark:border-[#366348]">
-<button class="text-[#637588] dark:text-[#96c5a9] font-medium hover:text-[#111418] dark:hover:text-white transition-colors px-4 py-2" type="button">
-                            Save as Draft
-                        </button>
-<button type="submit" class="flex items-center gap-2 px-8 py-3 rounded-full bg-primary text-[#122017] font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:scale-[1.02] active:scale-95 transition-all" type="button">
-<span>Submit Weekly Report</span>
+<button type="submit" name="action" 
+class="text-[#637588] dark:text-[#96c5a9] font-medium hover:text-[#111418] dark:hover:text-white transition-colors px-4 py-2" 
+value="draft">
+Save as Draft
+</button>
+<button type="submit" name="action" id="submitBtn" value="submit" 
+class="flex items-center gap-2 px-8 py-3 rounded-full bg-primary text-[#122017] font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:scale-[1.02] active:scale-95 transition-all" 
+>
+<span>{{"Update Report" if existing_report else "Submit Weekly Report"}}</span>
 <span class="material-symbols-outlined text-[20px]">send</span>
 </button>
 </div>
@@ -321,4 +401,44 @@
 </div>
 </div>
 </main>
+<script>
+  function handleInternshipChange(select) {
+    const internshipId = select.value;
+    window.location.href =
+      `/intern/weekly-report/redirect/${internshipId}`;
+  }
+      document.addEventListener("DOMContentLoaded", () => {
+    const form = document.querySelector("form");
+    const submitBtn = document.getElementById("submitBtn");
+
+    if (!form || !submitBtn) return;
+
+    let isSubmitting = false;
+
+    form.addEventListener("submit", (e) => {
+      // If already submitting, block everything (mouse + keyboard)
+      if (isSubmitting) {
+        e.preventDefault();
+        return false;
+      }
+
+      isSubmitting = true;
+
+      // Disable button (mouse + keyboard)
+      submitBtn.disabled = true;
+      submitBtn.setAttribute("aria-disabled", "true");
+
+      // Visual feedback
+      submitBtn.classList.add("opacity-60", "cursor-not-allowed");
+      submitBtn.innerText = "Submitting…";
+    });
+
+    // Extra safety: block Enter key once submitting
+    form.addEventListener("keydown", (e) => {
+      if (isSubmitting && e.key === "Enter") {
+        e.preventDefault();
+      }
+    });
+  });
+</script>
 </body></html>

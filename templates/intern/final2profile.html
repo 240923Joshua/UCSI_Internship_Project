@@ -45,8 +45,60 @@
         }
     </style>
 </head>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const messages = document.querySelectorAll(".flash-message");
+
+    messages.forEach((msg, index) => {
+      // Stagger slide-in
+      setTimeout(() => {
+        msg.classList.add("show");
+      }, index * 120);
+
+      // Auto-dismiss after 3s
+      setTimeout(() => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+
+        setTimeout(() => {
+          msg.remove();
+        }, 500);
+      }, 3000 + index * 120);
+
+      // Click to dismiss early
+      msg.addEventListener("click", () => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+
+        setTimeout(() => {
+          msg.remove();
+        }, 300);
+      });
+    });
+  });
+</script>
 <body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white h-screen overflow-hidden flex selection:bg-primary selection:text-background-dark">
-<aside class="w-80 h-full flex flex-col bg-background-light dark:bg-[#0e1a12] border-r border-[#e6e8eb] dark:border-[#1e3a29] shrink-0 transition-all duration-300 relative z-20">
+<div id="flash-container"
+     class="fixed top-6 right-6 z-50 space-y-3 pointer-events-none">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div
+        class="flash-message pointer-events-auto
+               px-5 py-4 rounded-xl shadow-lg text-sm font-medium
+               transform translate-x-20 opacity-0
+               transition-all duration-500 ease-out
+               {% if category == 'success' %}bg-green-600 text-white{% endif %}
+               {% if category == 'warning' %}bg-yellow-400 text-black{% endif %}
+               {% if category == 'error' %}bg-red-600 text-white{% endif %}"
+      >
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+</div>
+  <aside class="w-80 h-full flex flex-col bg-background-light dark:bg-[#0e1a12] border-r border-[#e6e8eb] dark:border-[#1e3a29] shrink-0 transition-all duration-300 relative z-20">
 <div class="p-6 pb-2">
 <div class="flex items-center gap-3">
 <div class="flex items-center justify-center size-10 rounded-xl bg-primary/20 text-primary">
@@ -99,7 +151,7 @@
   />
 </svg>
 </a>
-<a href="{{url_for('weekly_report')}}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<a href="{{url_for('weekly_report', internship_id=weeklyReportRedirect.internship_id, week=weeklyReportRedirect.week)}}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors">description</span>
 <span class="font-medium">Weekly Reports</span>
 </a>
