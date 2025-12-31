@@ -1,0 +1,36 @@
+{% extends "intern/base.html" %}
+{% block content %}
+
+<div class="max-w-4xl mx-auto space-y-6">
+
+  <h1 class="text-2xl font-bold">All Skills</h1>
+
+  {% for skill in skill_stats %}
+    <div class="p-5 rounded-xl bg-[#1a2c22] border border-[#366348]">
+      
+      <div class="flex justify-between items-center mb-2">
+        <span class="font-semibold">{{ skill.name }}</span>
+        <span class="text-sm text-[#96c5a9]">
+          {{ skill.level }} · Avg {{ skill.avg }}
+        </span>
+      </div>
+
+      <div class="w-full h-2 rounded-full bg-[#122017] mb-2">
+        <div
+          class="h-2 rounded-full bg-yellow-400"
+          style="--w: {{ skill.percentage }}%; width: var(--w);"
+        ></div>
+      </div>
+
+      <p class="text-xs text-[#96c5a9]">
+        Based on {{ skill.reports }} weekly report{{ "s" if skill.reports > 1 }}
+      </p>
+
+    </div>
+  {% else %}
+    <p class="text-[#96c5a9]">No skills recorded yet.</p>
+  {% endfor %}
+
+</div>
+
+{% endblock %}

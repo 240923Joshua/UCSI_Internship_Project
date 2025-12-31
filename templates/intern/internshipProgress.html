@@ -78,6 +78,26 @@
 <span class="material-symbols-outlined fill-1">pie_chart</span>
 <span class="font-medium">My Progress</span>
 </div>
+<svg class="w-5 h-5" viewBox="0 0 36 36">
+  <path
+    d="M18 2.0845
+       a 15.9155 15.9155 0 0 1 0 31.831
+       a 15.9155 15.9155 0 0 1 0 -31.831"
+    fill="none"
+    stroke="rgba(255,255,255,0.35)"
+    stroke-width="3"
+  />
+  <path
+    d="M18 2.0845
+       a 15.9155 15.9155 0 0 1 0 31.831
+       a 15.9155 15.9155 0 0 1 0 -31.831"
+    fill="none"
+    stroke="#052E16"
+    stroke-width="3"
+    stroke-dasharray="{{ progress_percentage }}, 100"
+    stroke-linecap="round"
+  />
+</svg>
 </a>
 <a href="{{url_for('weekly_report') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors">description</span>
@@ -126,13 +146,16 @@
 <span class="material-symbols-outlined text-[18px]">verified</span>
 <span>Mentor Status: Active</span>
 </div>
-<button class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-[#264532] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white font-medium hover:bg-[#f0f2f4] dark:hover:bg-[#366348] transition-colors shadow-sm">
-<span class="material-symbols-outlined text-[20px]">download</span>
+<button class="flex items-center gap-2 rounded-full bg-white dark:bg-[#264532] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white font-medium hover:bg-[#f0f2f4] dark:hover:bg-[#366348] transition-colors shadow-sm">
+<a href="{{ url_for('export_report', internship_id=selected_internship_id) }}"
+   class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-green-600/20 text-green-400 hover:bg-green-600/30 transition">
+  <span class="material-symbols-outlined text-[20px]">download</span>
 <span>Export Report</span>
+</a>
 </button>
 </div>
 </header>
-<div class="flex justify-end">
+<div class="flex justify-end position-relative">
   <form method="get">
     <label class="sr-only">Select Internship</label>
     <select
@@ -155,7 +178,7 @@
     </select>
   </form>
 </div>
-<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
 <div class="p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm relative overflow-hidden">
 <div class="relative z-10 flex flex-col h-full justify-between gap-4">
 <div class="flex items-center justify-between">
@@ -260,6 +283,11 @@
         <p class="text-sm text-green-600 mt-1">
           Submitted for this week
         </p>
+      
+      {% elif progress_stats.report_status == "overdue" %}
+      <p class="text-sm text-red-600 font-semibold mt-1">
+        Overdue by {{ progress_stats.days_until_due }} days
+      </p>
 
       {% else %}
         <p class="text-sm text-blue-600 mt-1">
@@ -284,134 +312,276 @@
 
   </div>
 </div>
+<a href="{{ url_for('intern_report_history', internship_id=selected_internship_id) }}"
+   class="block h-full hover:ring-2 hover:ring-red-400 rounded-2xl transition">  
+<div class="h-full p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm">
+  <div class="flex flex-col h-full justify-between gap-4">
 
-<!-- <div class="p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm">
-<div class="flex flex-col h-full justify-between gap-4">
-<div class="flex items-center justify-between">
-<span class="p-2 rounded-lg bg-purple-500/10 text-purple-500 material-symbols-outlined">article</span>
-<span class="text-xs font-bold uppercase text-[#637588] dark:text-[#96c5a9] tracking-wide">Reports</span>
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <span class="p-2 rounded-lg 
+        {% if progress_stats.outstanding_reports > 0 %}
+          bg-red-500/10 text-red-500
+        {% else %}
+          bg-green-500/10 text-green-500
+        {% endif %}
+        material-symbols-outlined">
+        pending_actions
+      </span>
+      <span class="text-xs font-bold uppercase text-[#637588] dark:text-[#96c5a9] tracking-wide">
+        Outstanding
+      </span>
+    </div>
+
+    <!-- Main Content -->
+    <div>
+      <span class="text-3xl font-bold text-[#111418] dark:text-white">
+        {{ progress_stats.outstanding_reports }}
+      </span>
+      <p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-1">
+        Reports pending
+      </p>
+    </div>
+
+    <!-- Status Message -->
+    {% if progress_stats.outstanding_reports == 0 %}
+      <p class="text-sm text-green-600 font-medium">
+        You're on track
+      </p>
+    {% else %}
+      <p class="text-sm text-red-600 font-medium">
+        Action required
+      </p>
+    {% endif %}
+
+  </div>
 </div>
-<div>
-<span class="text-3xl font-bold text-[#111418] dark:text-white">4</span>
-<span class="text-xl text-[#637588] dark:text-[#96c5a9] font-medium">/ 12</span>
-<p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-1">Next due in 2 days</p>
-</div>
-<div class="flex gap-1">
-<div class="h-1.5 flex-1 rounded-full bg-purple-500"></div>
-<div class="h-1.5 flex-1 rounded-full bg-purple-500"></div>
-<div class="h-1.5 flex-1 rounded-full bg-purple-500"></div>
-<div class="h-1.5 flex-1 rounded-full bg-purple-500"></div>
-<div class="h-1.5 flex-1 rounded-full bg-[#e6e8eb] dark:bg-[#122017]"></div>
-</div>
-</div>
-</div> -->
-<div class="p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm">
-<div class="flex flex-col h-full justify-between gap-4">
-<div class="flex items-center justify-between">
-<span class="p-2 rounded-lg bg-orange-500/10 text-orange-500 material-symbols-outlined">pending_actions</span>
-<span class="text-xs font-bold uppercase text-[#637588] dark:text-[#96c5a9] tracking-wide">Outstanding</span>
-</div>
-<div>
-<span class="text-3xl font-bold text-[#111418] dark:text-white">3</span>
-<p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-1">Active tasks pending</p>
-</div>
-<div class="flex items-center gap-2 mt-auto">
-<a class="text-xs font-bold text-orange-500 hover:text-orange-400 flex items-center gap-1" href="#">
-                                View Tasks <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
 </a>
+<div class="col-span-2 p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm">
+  <div class="flex flex-col gap-4">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      {% if progress_stats.performance_trend == "improving" %}
+        <span class="p-2 rounded-lg bg-green-500/10 text-green-500 material-symbols-outlined">
+          trending_up
+        </span>
+      {% elif progress_stats.performance_trend == "declining" %}
+        <span class="p-2 rounded-lg bg-red-500/10 text-red-500 material-symbols-outlined">
+          trending_down
+        </span>
+      {% else %}
+        <span class="p-2 rounded-lg bg-gray-500/10 text-gray-500 material-symbols-outlined">
+          trending_flat
+        </span>
+      {% endif %}
+
+      <span class="text-xs font-bold uppercase text-[#637588] dark:text-[#96c5a9] tracking-wide">
+        Performance Trend
+      </span>
+    </div>
+
+    
+    <!-- Line Graph -->
+    <div class="mt-2">
+      <svg
+  viewBox="0 0 100 100"
+  class="w-full h-28"
+>
+
+  {% set values = progress_stats.skill_trend_normalized %}
+  {% set count = values|length %}
+  {% if count < 2 %}
+      <div class="flex flex-col items-center justify-center h-28 text-[#96c5a9] gap-2">
+        <span class="material-symbols-outlined text-3xl opacity-50">
+          show_chart
+        </span>
+        <span>No reports submitted yet</span>
+      </div>
+  {% else %}
+  {% set step = 100 / (count - 1) %}
+
+  {% set path = [] %}
+  {% for y in values %}
+    {% set x = loop.index0 * step %}
+    {% set yv = 100 - y %}
+    {% if loop.first %}
+      {% set _ = path.append("M " ~ x ~ " " ~ yv) %}
+    {% else %}
+      {% set px = (loop.index0 - 1) * step %}
+      {% set py = 100 - values[loop.index0 - 1] %}
+      {% set cx = (px + x) / 2 %}
+      {% set cy = (py + yv) / 2 %}
+      {% set _ = path.append("Q " ~ px ~ " " ~ py ~ ", " ~ cx ~ " " ~ cy) %}
+    {% endif %}
+  {% endfor %}
+  {% set _ = path.append("T " ~ x ~ " " ~ yv) %}
+  {% endif %}
+
+  <!-- Glow -->
+  <path
+    d="{{ path | join(' ') }}"
+    fill="none"
+    stroke="#22c55e"
+    stroke-width="6"
+    stroke-opacity="0.08"
+    stroke-linecap="round"
+  />
+
+  <!-- Main line -->
+  <path
+    d="{{ path | join(' ') }}"
+    fill="none"
+    stroke="#22c55e"
+    stroke-width="4"
+    stroke-linecap="round"
+  />
+      <path
+  id="trendPath"
+  d="{{ path | join(' ') }}"
+  fill="none"
+  stroke="none"
+  pathLength="1"
+/>
+
+{% set count = progress_stats.skill_trend | length %}
+
+{% for i in range(progress_stats.skill_trend|length) %}
+{% if count >= 2 %}
+  {% for i in range(count) %}
+    <circle r="3" fill="#22c55e">
+      <animateMotion
+        dur="0.001s"
+        fill="freeze"
+        keyPoints="{{ i / (count - 1) }}"
+        keyTimes="0"
+        calcMode="linear"
+        path="{{ path | join(' ') }}"
+      />
+      <title>
+        Week {{ i + 1 }} : Skill {{ progress_stats.skill_trend[i] }}
+      </title>
+    </circle>
+  {% endfor %}
+{% endif %}
+{% endfor %}
+</svg>
+
+    </div>
+
+    <!-- Caption -->
+    <p class="text-xs text-[#637588] dark:text-[#96c5a9]">
+      Skill rating over last {{ progress_stats.skill_trend | length }} reports
+    </p>
+
+  </div>
 </div>
+
+<div class="col-span-1 p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm flex flex-col h-full">
+  <div class="space-y-5">
+  {% for skill in skill_stats[:3] %}
+    <div>
+      <div class="flex justify-between items-center mb-1">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
+          <span class="font-medium">{{ skill.name }}</span>
+        </div>
+        <span class="text-sm text-[#96c5a9]">{{ skill.level }}</span>
+      </div>
+
+      <div class="w-full h-2 rounded-full bg-[#122017]">
+        <div
+          class="h-2 rounded-full bg-yellow-400"
+          style="--w: {{ skill.percentage }}%; width: var(--w);"
+        ></div>
+      </div>
+    </div>
+  {% endfor %}
 </div>
-</div>
-</section>
-<section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-<div class="lg:col-span-2 p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm flex flex-col">
-<div class="flex justify-between items-center mb-6">
-<h3 class="text-lg font-bold text-[#111418] dark:text-white">Performance Trend</h3>
-<div class="flex bg-[#f0f2f4] dark:bg-[#122017] p-1 rounded-lg">
-<button class="px-3 py-1 text-xs font-medium rounded-md bg-white dark:bg-[#264532] text-[#111418] dark:text-white shadow-sm">Weekly</button>
-<button class="px-3 py-1 text-xs font-medium rounded-md text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white transition-colors">Monthly</button>
-</div>
-</div>
-<div class="flex-1 flex items-end gap-2 sm:gap-4 h-64 w-full px-2">
-<div class="hidden sm:flex flex-col justify-between h-full text-xs text-[#637588] dark:text-[#588569] pr-2 pb-6">
-<span>100</span>
-<span>75</span>
-<span>50</span>
-<span>25</span>
-<span>0</span>
-</div>
-<div class="flex-1 flex flex-col justify-end group cursor-pointer">
-<div class="w-full bg-primary/20 hover:bg-primary/30 rounded-t-sm relative transition-all" style="height: 45%">
-<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-dark text-white text-xs px-2 py-1 rounded">45%</div>
-</div>
-<span class="text-[10px] sm:text-xs text-center mt-2 text-[#637588] dark:text-[#96c5a9]">Week 1</span>
-</div>
-<div class="flex-1 flex flex-col justify-end group cursor-pointer">
-<div class="w-full bg-primary/30 hover:bg-primary/40 rounded-t-sm relative transition-all" style="height: 58%">
-<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-dark text-white text-xs px-2 py-1 rounded">58%</div>
-</div>
-<span class="text-[10px] sm:text-xs text-center mt-2 text-[#637588] dark:text-[#96c5a9]">Week 2</span>
-</div>
-<div class="flex-1 flex flex-col justify-end group cursor-pointer">
-<div class="w-full bg-primary/50 hover:bg-primary/60 rounded-t-sm relative transition-all" style="height: 65%">
-<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-dark text-white text-xs px-2 py-1 rounded">65%</div>
-</div>
-<span class="text-[10px] sm:text-xs text-center mt-2 text-[#637588] dark:text-[#96c5a9]">Week 3</span>
-</div>
-<div class="flex-1 flex flex-col justify-end group cursor-pointer">
-<div class="w-full bg-primary hover:bg-primary/90 rounded-t-sm relative transition-all" style="height: 82%">
-<div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-dark text-white text-xs px-2 py-1 rounded">82%</div>
-</div>
-<span class="text-[10px] sm:text-xs text-center mt-2 text-[#637588] dark:text-[#96c5a9]">Week 4</span>
-</div>
-</div>
-</div>
-<div class="p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm flex flex-col h-full">
-<h3 class="text-lg font-bold text-[#111418] dark:text-white mb-6">Skills Acquired</h3>
-<div class="flex flex-col gap-5 flex-1">
-<div>
-<div class="flex justify-between items-center mb-2">
-<div class="flex items-center gap-2">
-<span class="size-2 rounded-full bg-yellow-400"></span>
-<span class="text-sm font-medium text-[#111418] dark:text-white">Python</span>
-</div>
-<span class="text-xs font-bold text-[#637588] dark:text-[#96c5a9]">Advanced</span>
-</div>
-<div class="w-full bg-[#e6e8eb] dark:bg-[#122017] h-2 rounded-full overflow-hidden">
-<div class="bg-yellow-400 h-full rounded-full" style="width: 85%"></div>
-</div>
-</div>
-<div>
-<div class="flex justify-between items-center mb-2">
-<div class="flex items-center gap-2">
-<span class="size-2 rounded-full bg-blue-400"></span>
-<span class="text-sm font-medium text-[#111418] dark:text-white">Data Analysis</span>
-</div>
-<span class="text-xs font-bold text-[#637588] dark:text-[#96c5a9]">Intermediate</span>
-</div>
-<div class="w-full bg-[#e6e8eb] dark:bg-[#122017] h-2 rounded-full overflow-hidden">
-<div class="bg-blue-400 h-full rounded-full" style="width: 60%"></div>
-</div>
-</div>
-<div>
-<div class="flex justify-between items-center mb-2">
-<div class="flex items-center gap-2">
-<span class="size-2 rounded-full bg-pink-400"></span>
-<span class="text-sm font-medium text-[#111418] dark:text-white">Communication</span>
-</div>
-<span class="text-xs font-bold text-[#637588] dark:text-[#96c5a9]">Developing</span>
-</div>
-<div class="w-full bg-[#e6e8eb] dark:bg-[#122017] h-2 rounded-full overflow-hidden">
-<div class="bg-pink-400 h-full rounded-full" style="width: 45%"></div>
-</div>
-</div>
-</div>
+<a
+  href="{{ url_for('view_all_skills', internship_id=selected_internship_id) }}" class="mt-auto block text-center"
+>
 <button class="mt-6 w-full py-2.5 rounded-xl border border-[#e6e8eb] dark:border-[#366348] text-sm font-bold text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white hover:bg-[#f0f2f4] dark:hover:bg-[#264532] transition-colors">
                         View All Skills
                     </button>
+</a>
 </div>
 </section>
+
 <section>
+<div class="h-full flex flex-col justify-between p-6 rounded-2xl bg-[#1a2c22] border border-[#366348]">
+{% if outstanding_tasks|length <= 0 %}
+  <div class="text-center py-10 text-[#96c5a9]">
+    <span class="material-symbols-outlined text-6xl mb-4 opacity-50">
+      task_alt
+    </span>
+    <p class="text-lg font-medium">
+      No outstanding tasks! Great job staying on track.
+    </p>
+  </div>
+{% else %}
+
+  <table class="w-full table-fixed border-collapse">
+    
+    <thead>
+      <tr class="text-left text-xs text-[#96c5a9]">
+        <th class="pb-3">TASK NAME</th>
+        <th class="pb-3">DEADLINE</th>
+        <th class="pb-3">PRIORITY</th>
+        <th class="pb-3">STATUS</th>
+        <th class="pb-3">ACTION</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for task in outstanding_tasks[:3] %}
+        <tr class="border-t border-[#366348]">
+
+          <td class="py-4 font-medium">
+            {{ task.task_name }}
+          </td>
+
+          <td class="text-[#96c5a9]">
+            {{ task.deadline.strftime("%b %d, %Y") }}
+          </td>
+
+          <td>
+            {% if task.priority == "HIGH" %}
+              <span class="px-3 py-1 rounded-full bg-red-500/20 text-red-400">HIGH</span>
+            {% elif task.priority == "MEDIUM" %}
+              <span class="px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400">MEDIUM</span>
+            {% else %}
+              <span class="px-3 py-1 rounded-full bg-green-500/20 text-green-400">LOW</span>
+            {% endif %}
+          </td>
+
+          <td class="text-[#96c5a9]">
+            <span class="inline-flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+              Not Started
+            </span>
+          </td>
+
+          <td>
+            <a
+              href="{{ task.action_url }}"
+              class="px-4 py-2 rounded-full border border-green-500 text-green-400 hover:bg-green-500/10 transition"
+            >
+              Start
+            </a>
+          </td>
+
+        </tr>
+      {% endfor %}
+    </tbody>
+
+  </table>
+{% endif %}
+
+</div>
+
+</section>
+<!-- <section>
 <div class="flex items-center justify-between mb-4">
 <h3 class="text-xl font-bold text-[#111418] dark:text-white">Outstanding Tasks</h3>
 <a class="text-sm font-medium text-primary hover:text-primary/80" href="#">See all</a>
@@ -487,8 +657,8 @@
 </table>
 </div>
 </div>
-</section>
+</section> -->
 </div>
 </main>
-
-</body></html>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{% extends "intern/base.html" %}
+
+{% block title %}Weekly Report History{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto p-6">
+
+  <h1 class="text-2xl font-bold mb-6 text-[#111418] dark:text-white">
+    Weekly Report History
+  </h1>
+
+  {% if reports %}
+    <div class="space-y-4">
+      {% for report in reports %}
+        <div class="p-4 rounded-xl border border-[#e6e8eb] dark:border-[#366348] bg-white dark:bg-[#1a2c22]">
+          <div class="flex justify-between items-center">
+            <span class="font-semibold">
+              Week {{ report.week_number }}
+            </span>
+            <span class="text-sm text-green-600 font-medium">
+              Submitted
+            </span>
+          </div>
+          <p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-2">
+            {{ report.task_description }}
+          </p>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-gray-500">
+      No reports submitted yet.
+    </p>
+  {% endif %}
+
+</div>
+{% endblock %}

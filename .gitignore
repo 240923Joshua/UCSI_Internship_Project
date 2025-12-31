@@ -10,3 +10,4 @@ tts_cache/
 *.wav
 needtodo.txt
 *.bkp
+templates/intern/pdf_report.html

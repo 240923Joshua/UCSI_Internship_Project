@@ -1,4 +1,5 @@
-from flask import Flask,render_template, request, redirect, url_for, session, jsonify, flash
+import csv,io
+from flask import Flask,render_template, request, redirect, url_for, session, jsonify, flash,make_response
 from db import get_db, calculate_attendance_percentage
 from avatar import get_avatar_response
 from hasher import hash_password, verify_password
@@ -14,6 +15,65 @@ app.secret_key = "d2a0fc31b5ca9b05585d76fd607983601efe4bf8980e10c9a40f13e36a3cb2
 def home():
     # return "Backend is running"
     return render_template("home.html")
+
+def get_skill_stats(db, user_id, internship_id):
+    cursor = db.execute("""
+        SELECT focus_skill, skill_rating
+        FROM weekly_reports
+        WHERE user_id = ?
+          AND internship_id = ?
+          AND skill_rating IS NOT NULL
+    """, (user_id, internship_id))
+
+    rows = cursor.fetchall()
+
+    skills = {}
+
+    for row in rows:
+        skill = row["focus_skill"]
+        rating = row["skill_rating"]
+
+        skills.setdefault(skill, []).append(rating)
+
+    skill_stats = []
+
+    for skill, ratings in skills.items():
+        avg = sum(ratings) / len(ratings)
+        percentage = round((avg / 10) * 100)
+
+        if avg >= 8:
+            level = "Advanced"
+        elif avg >= 6:
+            level = "Intermediate"
+        else:
+            level = "Developing"
+
+        skill_stats.append({
+            "name": skill,
+            "avg": round(avg, 1),
+            "percentage": percentage,
+            "level": level,
+            "reports": len(ratings)
+        })
+
+    skill_stats.sort(key=lambda x: x["percentage"], reverse=True)
+    return skill_stats
+
+def myProgressPercentage(db, user_id):
+    internships = db.execute("""
+    SELECT COUNT(internship_id) AS total_internships
+    FROM internship
+    WHERE user_id = ?
+    """, (user_id,)).fetchone()["total_internships"]
+    ml_results = db.execute("""
+    SELECT SUM(predicted_score) AS total_score
+    FROM ml_results
+    WHERE user_id = ?
+    """, (user_id,)).fetchone()["total_score"]
+    if internships == 0:
+        return 0
+    return round(ml_results / internships,2)
+
 
 @app.route("/weekly-report", methods=["POST"])
 def submit_weekly_report():
@@ -249,7 +309,8 @@ def weekly_report():
         internships=internships,
         userdetails=userdetails,
         user_id=user_id,
-        domain=domain
+        domain=domain,
+        progress_percentage=myProgressPercentage(db, user_id)
     )
 
 @app.route("/supervisor/<int:supervisor_id>/dashboard")
@@ -357,7 +418,59 @@ def profile(user_id):
     # else:
     #     internships = [internships[0]]
     #     selected_id = internships[0]["internship_id"]
-    return render_template("intern/final2profile.html", user_details=user_details,internships=internships,domain=domain,dates=dates,today=date.today().strftime("%d %b %Y"))
+    return render_template("intern/final2profile.html", 
+    user_details=user_details,
+    internships=internships,
+    domain=domain,
+    dates=dates,
+    today=date.today().strftime("%d %b %Y"),
+    progress_percentage=myProgressPercentage(db, user_id)
+    )
+
+@app.route("/intern/export-report/<int:internship_id>")
+def export_report(internship_id):
+    user_id = session["user_id"]
+    db = get_db()
+
+    reports = db.execute("""
+        SELECT
+            week_number,
+            attendance_percentage,
+            focus_skill,
+            skill_rating,
+            stress_level,
+            self_evaluation,
+            challenges,
+            next_week_priorities,
+            submitted_at
+        FROM weekly_reports
+        WHERE user_id = ? AND internship_id = ?
+        ORDER BY week_number
+    """, (user_id, internship_id)).fetchall()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow([
+        "Week",
+        "Attendance %",
+        "Focus Skill",
+        "Skill Rating",
+        "Stress Level",
+        "Self Evaluation",
+        "Challenges",
+        "Next Week Priorities",
+        "Submitted At"
+    ])
+
+    for r in reports:
+        writer.writerow(r)
+
+    response = make_response(output.getvalue())
+    response.headers["Content-Type"] = "text/csv"
+    response.headers["Content-Disposition"] = "attachment; filename=weekly_reports.csv"
+    return response
+
 
 @app.route("/intern/progress")
 def internship_progress():
@@ -373,16 +486,17 @@ def internship_progress():
         "SELECT * FROM internship WHERE user_id = ?",
         (user_id,)
     ).fetchall()
-
+    progress_percentage = myProgressPercentage(db, user_id)
     if not internships:
         # No internships yet
         return render_template(
-            "intern/finalinternshipProgress.html",
+            "intern/internshipProgress.html",
             internships=[],
             selected_internship_id=None,
             user_details=None,
             attendance=None,
-            current_week=None
+            current_week=None,
+            progress_percentage=progress_percentage
         )
 
     selected_internship_id = request.args.get("internship_id")
@@ -455,8 +569,11 @@ def internship_progress():
     FROM weekly_reports
     WHERE user_id = ? AND internship_id = ? AND week_number = ?
     """,
-    (user_id, selected_internship_id, current_week)
+        (user_id, selected_internship_id, current_week)
     ).fetchone()
+
+    report_due_date = start_date + timedelta(days=current_week * 7)
+    days_until_due = (report_due_date - today).days
 
     if current_week > total_weeks:
         report_status = "completed"
@@ -466,10 +583,13 @@ def internship_progress():
         report_status = "submitted"
         days_until_due = None
 
+    elif days_until_due < 0:
+        report_status = "overdue"
+        days_until_due = abs(days_until_due)
+
     else:
-        report_due_date = start_date + timedelta(days=current_week * 7)
-        days_until_due = (report_due_date - today).days
         report_status = "pending"
+
 
     reports_submitted = db.execute(
     """
@@ -479,10 +599,112 @@ def internship_progress():
     """,
     (user_id, selected_internship_id)
     ).fetchone()["count"]
+
     domain=""
     for i in internships:
         domain+=i["domain"]+" • "
     domain = domain[:-3]
+
+    # Expected reports up to last completed week
+    expected_reports = max(current_week - 1, 0)
+
+    # Outstanding reports (cannot be negative)
+    outstanding_reports = max(
+        expected_reports - reports_submitted,
+        0
+    )
+
+    skill_rows = db.execute(
+        """
+        SELECT week_number, skill_rating
+        FROM weekly_reports
+        WHERE user_id = ? AND internship_id = ?
+        ORDER BY week_number DESC
+        LIMIT 6
+        """,
+        (user_id, selected_internship_id)
+    ).fetchall()
+   
+    trend = "stable"
+    trend_delta = 0
+
+    if len(skill_rows) >= 3:
+        recent = [r["skill_rating"] for r in skill_rows[:3]]
+
+        if len(skill_rows) >= 6:
+            previous = [r["skill_rating"] for r in skill_rows[3:6]]
+        else:
+            previous = recent  # fallback
+
+        recent_avg = sum(recent) / len(recent)
+        previous_avg = sum(previous) / len(previous)
+
+        trend_delta = round(recent_avg - previous_avg, 2)
+
+        if trend_delta >= 0.5:
+            trend = "improving"
+        elif trend_delta <= -0.5:
+            trend = "declining"
+
+    skill_trend = list(reversed([
+    r["skill_rating"] for r in skill_rows
+    ]))
+
+    if skill_trend:
+        max_val = max(skill_trend)
+        min_val = min(skill_trend)
+
+        if max_val == min_val:
+            normalized = [50 for _ in skill_trend]
+        else:
+            normalized = [
+                int((v - min_val) / (max_val - min_val) * 90 + 5)
+                for v in skill_trend
+            ]
+    else:
+        normalized = []
+    
+    skill_stats = get_skill_stats(db, user_id, selected_internship_id)
+
+    cursor = db.execute("""
+        SELECT week_number
+        FROM weekly_reports
+        WHERE user_id = ?
+        AND internship_id = ?
+    """, (user_id, selected_internship_id))
+
+    submitted_weeks = {row["week_number"] for row in cursor.fetchall()}
+
+    outstanding_tasks = []
+
+    for week in range(1, current_week + 1):
+        if week not in submitted_weeks:
+            due_date = start_date + timedelta(days=week * 7)
+
+            if due_date < today:
+                priority = "HIGH"
+            elif (due_date - today).days <= 3:
+                priority = "MEDIUM"
+            else:
+                priority = "LOW"
+
+            outstanding_tasks.append({
+                "task_name": f"Weekly Report: Week {week}",
+                "deadline": due_date,
+                "priority": priority,
+                "status": "Not Started",
+                "action_url": url_for(
+                    "weekly_report",
+                    internship_id=selected_internship_id,
+                    week=week
+                )
+            })
+    priority_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
+
+    outstanding_tasks.sort(
+        key=lambda t: (priority_order[t["priority"]], t["deadline"])
+    )
+
 
     progress_stats = {
     "present_days": present_days,
@@ -494,18 +716,88 @@ def internship_progress():
     "total_weeks": selected_internship["weeks"],
     "report_status": report_status,
     "days_until_due": days_until_due,
-    "domain": domain
-}
+    "outstanding_reports": outstanding_reports,
+    "domain": domain,
+    "performance_trend": trend,
+    "trend_delta": trend_delta,
+    "skill_trend": skill_trend,
+    "skill_trend_normalized": normalized
+    }
+    if len(skill_trend) < 2:
+        progress_stats["skill_trend_normalized"] = []
     return render_template(
-        "intern/finalinternshipProgress.html",
+        "intern/internshipProgress.html",
         internships=internships,
         selected_internship_id=selected_internship_id,
         selected_internship=selected_internship,
         progress_stats=progress_stats,
         user_details=user_details,
         user_id=user_id,
-        ml_results=ml_results
+        ml_results=ml_results,
+        skill_stats=skill_stats,
+        outstanding_tasks=outstanding_tasks,
+        progress_percentage=progress_percentage
     )
+
+@app.route("/intern/skills")
+def view_all_skills():
+    if "user_id" not in session or session.get("role") != "intern":
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    internship_id = request.args.get("internship_id", type=int)
+
+    if not internship_id:
+        abort(400)
+
+    db = get_db()
+    skill_stats = get_skill_stats(db, user_id, internship_id)
+
+    return render_template(
+        "intern/intern_skills.html",
+        skill_stats=skill_stats
+    )
+
+@app.route("/intern/reports")
+def intern_report_history():
+    if "user_id" not in session or session.get("role") != "intern":
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    internship_id = request.args.get("internship_id")
+
+    if not internship_id:
+        return redirect(url_for("internship_progress"))
+
+    internship_id = int(internship_id)
+    db = get_db()
+
+    # Ownership check
+    internship = db.execute(
+        "SELECT * FROM internship WHERE internship_id = ? AND user_id = ?",
+        (internship_id, user_id)
+    ).fetchone()
+
+    if not internship:
+        return redirect(url_for("internship_progress"))
+
+    # Fetch reports
+    reports = db.execute(
+        """
+        SELECT *
+        FROM weekly_reports
+        WHERE user_id = ? AND internship_id = ?
+        ORDER BY week_number ASC
+        """,
+        (user_id, internship_id)
+    ).fetchall()
+
+    return render_template(
+        "intern/finalreporthistory.html",
+        reports=reports,
+        internship=internship
+    )
+
 
 @app.route("/avatar/chat", methods=["POST"])
 def avatar_chat():
