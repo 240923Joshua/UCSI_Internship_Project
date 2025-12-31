@@ -11,3 +11,4 @@ tts_cache/
 needtodo.txt
 *.bkp
 templates/intern/pdf_report.html
+weekly_reports.sql
