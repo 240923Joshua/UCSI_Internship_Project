@@ -78,7 +78,26 @@
 <span class="material-symbols-outlined group-hover:text-primary transition-colors">pie_chart</span>
 <span class="font-medium">My Progress</span>
 </div>
-<div class="size-5 rounded-full border-2 border-primary/30 border-t-primary" title="35%"></div>
+<svg class="w-5 h-5" viewBox="0 0 36 36">
+  <path
+    d="M18 2.0845
+       a 15.9155 15.9155 0 0 1 0 31.831
+       a 15.9155 15.9155 0 0 1 0 -31.831"
+    fill="none"
+    stroke="#264532"
+    stroke-width="3"
+  />
+  <path
+    d="M18 2.0845
+       a 15.9155 15.9155 0 0 1 0 31.831
+       a 15.9155 15.9155 0 0 1 0 -31.831"
+    fill="none"
+    stroke="#38e07b"
+    stroke-width="3"
+    stroke-dasharray="{{ progress_percentage }}, 100"
+    stroke-linecap="round"
+  />
+</svg>
 </a>
 <a class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]" href="#">
 <span class="material-symbols-outlined fill-1">description</span>
