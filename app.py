@@ -85,11 +85,12 @@ def myProgressPercentage(db, user_id):
     return round(ml_results / internships,2)
 
 
-@app.route("/intern/<int:user_id>")
-def intern_dashboard(user_id):
-    domain=""
+@app.route("/dashboard")
+def intern_dashboard():
     if "user_id" not in session or session.get("role") != "intern":
         return redirect(url_for("login"))
+    user_id = session["user_id"]
+    domain=""
     db = get_db()
     cursor = db.execute("SELECT * FROM internship WHERE user_id = ?", (user_id,))
     internships = cursor.fetchall()
@@ -98,9 +99,84 @@ def intern_dashboard(user_id):
     domain = domain[:-3]  # Remove trailing separator
     cursor = db.execute("SELECT * FROM user_details WHERE user_id = ?", (user_id,))
     user_details = cursor.fetchone()
-    cursor = db.execute("SELECT * FROM ml_results WHERE user_id = ? ORDER BY created_at DESC", (user_id,))
-    ml_results = cursor.fetchall()
-    return render_template("intern/finalinterndashboard.html", internships=internships[0], user_details=user_details,domain=domain,ml_results=ml_results)
+    progress_percentage = myProgressPercentage(db, user_id)
+
+    internship_id = request.args.get("internship_id", type=int)
+    if not internship_id:
+        internship_id = internships[0]["internship_id"]
+
+    cursor = db.execute("""
+    SELECT *
+    FROM internship
+    WHERE internship_id = ? AND user_id = ?
+    """, (internship_id, user_id))
+
+    internship = cursor.fetchone()
+
+    if not internship:
+        abort(403)
+    today = date.today()
+    start = datetime.strptime(internship["start_date"], "%Y-%m-%d").date()
+    end = datetime.strptime(internship["end_date"], "%Y-%m-%d").date()
+
+    if today < start:
+        progressPercentage = 0
+    elif today > end:
+        progressPercentage = 100
+    else:
+        total_days = (end - start).days
+        elapsed_days = (today - start).days
+        progressPercentage = round((elapsed_days / total_days) * 100)
+    total_weeks = internship["weeks"]
+
+    currentWeek = min(
+        total_weeks,
+        max(1, ((today - start).days // 7) + 1)
+)
+    cursor = db.execute("""
+        SELECT status
+        FROM weekly_reports
+        WHERE user_id = ?
+        AND internship_id = ?
+        AND week_number = ?
+    """, (user_id, internship_id, currentWeek))
+
+    report = cursor.fetchone()
+
+    if report and report["status"] == "submitted":
+        weekly_status = "Submitted"
+        next_due = f"Week {currentWeek + 1}"
+    else:
+        weekly_status = "Pending"
+        next_due = f"Week {currentWeek}"
+    # --------------------------------------------------
+    latest_internship = db.execute(
+        """
+        SELECT * FROM internship
+        WHERE user_id = ?
+        ORDER BY start_date DESC
+        LIMIT 1
+        """,
+        (user_id,)
+    ).fetchone()
+
+    start_date_latest = datetime.strptime(
+        latest_internship["start_date"], "%Y-%m-%d"
+    ).date()
+
+    current_week = max(1, ((today - start_date_latest).days // 7) + 1)
+
+    weeklyReportRedirect = {
+        "internship_id": latest_internship["internship_id"],
+        "week": current_week
+    }
+    # --------------------------------------------------
+    return render_template("intern/dashboard.html", internships=internships, 
+    user_details=user_details,domain=domain,weeklyReportRedirect=weeklyReportRedirect,
+    progress_percentage=progress_percentage, active_internship_id=internship_id,
+    total_weeks=total_weeks, currentWeek=currentWeek,progressPercentage=progressPercentage,
+    next_due=next_due,weekly_status=weekly_status)
+   
 
 # @app.route("/flash-test")
 # def flash_test():
@@ -324,6 +400,67 @@ def weekly_report_redirect(internship_id):
         week=current_week
     ))
 
+@app.route("/skill-dev")
+def skill_dev():
+    if "user_id" not in session or session.get("role") != "intern":
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    db = get_db()
+
+    user_details = db.execute(
+        "SELECT * FROM user_details WHERE user_id = ?",
+        (user_id,)
+    ).fetchone()
+
+
+    skills = db.execute("""
+        SELECT s.name, ds.domain
+        FROM skills s
+        JOIN domain_skills ds ON ds.skill_id = s.skill_id
+        WHERE ds.domain IN (
+            SELECT DISTINCT domain FROM internship WHERE user_id = ?
+        )
+        ORDER BY ds.domain, s.name
+    """, (user_id,)).fetchall()
+
+    latest_internship = db.execute(
+        """
+        SELECT * FROM internship
+        WHERE user_id = ?
+        ORDER BY start_date DESC
+        LIMIT 1
+        """,
+        (user_id,)
+    ).fetchone()
+
+    start_date_latest = datetime.strptime(
+        latest_internship["start_date"], "%Y-%m-%d"
+    ).date()
+
+    today = date.today()
+    current_week = max(1, ((today - start_date_latest).days // 7) + 1)
+
+    domain=""
+    internships = db.execute("""
+        SELECT domain
+        FROM internship
+        WHERE user_id = ?
+    """, (user_id,)).fetchall()
+    for i in internships:
+        domain+=i["domain"]+" • "
+    domain = domain[:-3]
+
+    progress_percentage = myProgressPercentage(db, user_id)
+
+    weeklyReportRedirect = {
+        "internship_id": latest_internship["internship_id"],
+        "week": current_week
+    }
+
+    return render_template("intern/finalskilldev.html", skills=skills,
+    weeklyReportRedirect=weeklyReportRedirect, user_details=user_details, domain=domain, progress_percentage=progress_percentage)
+
 @app.route("/supervisor/<int:supervisor_id>/dashboard")
 def supervisor_dashboard(supervisor_id):
     if "user_id" not in session or session.get("role") != "supervisor":
@@ -387,7 +524,7 @@ def login():
 
     # Redirect based on role
     if user["role"] == "intern":
-        return redirect(url_for("intern_dashboard", user_id=user["user_id"]))
+        return redirect(url_for("intern_dashboard"))
 
     if user["role"] == "supervisor":
         return redirect(url_for("supervisor_dashboard", supervisor_id=user["user_id"]))
@@ -1096,7 +1233,7 @@ def intern_report_history():
     ).fetchall()
 
     return render_template(
-        "intern/avatarChat.html",
+        "intern/finalreporthistory.html",
         reports=reports,
         internship=internship
     )
@@ -1146,7 +1283,7 @@ def avatar_page():
         "week": current_week
     }
     return render_template(
-        "intern/finalavatarchat.html",
+        "intern/avatarChat.html",
         internships=internships,
         user_details=user_details,
         domain=domain,
@@ -1214,4 +1351,4 @@ def avatar_chat():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=True, use_reloader=True)

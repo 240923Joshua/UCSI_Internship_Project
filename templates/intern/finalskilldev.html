@@ -69,11 +69,11 @@
 </div>
 <div class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
 <p class="px-4 py-2 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Menu</p>
-<a class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<a href="{{ url_for('intern_dashboard') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors">dashboard</span>
 <span class="font-medium">Dashboard</span>
 </a>
-<a class="group flex items-center justify-between px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<a href="{{ url_for('internship_progress') }}" class="group flex items-center justify-between px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
 <div class="flex items-center gap-3">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors">pie_chart</span>
 <span class="font-medium">My Progress</span>
@@ -99,20 +99,20 @@
   />
 </svg>
 </a>
-<a class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<a href="{{ url_for('weekly_report', internship_id=weeklyReportRedirect.internship_id, week=weeklyReportRedirect.week) }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors">description</span>
 <span class="font-medium">Weekly Reports</span>
 </a>
-<a class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<a href="{{ url_for('avatar_page') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors animate-pulse">smart_toy</span>
 <span class="font-medium">AI Avatar Guidance</span>
 </a>
-<a class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]" href="#">
+<a href="{{ url_for('skill_dev') }}" class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]" href="#">
 <span class="material-symbols-outlined fill-1">school</span>
 <span class="font-medium">Skill Development</span>
 </a>
 <p class="px-4 py-2 mt-4 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Account</p>
-<a class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<a href="{{ url_for('profile') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors">person</span>
 <span class="font-medium">Profile</span>
 </a>
@@ -120,10 +120,10 @@
 <div class="p-4 border-t border-[#e6e8eb] dark:border-[#1e3a29]">
 <div class="flex items-center justify-between gap-3 p-2 rounded-xl bg-[#f0f2f4] dark:bg-[#1a2c22]">
 <div class="flex items-center gap-3">
-<div class="size-10 rounded-full bg-cover bg-center" data-alt="Student profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDuX_8uJBBMVCEmFZwkSt76lgP-xhED1iynfsiKVsr-omrWfYvSRmL-WJF3ZNJwE2JSbJ3sQ3E4zshGiHqISPyA-rC6dpQgP9NdXE6o6ZoHX3OEwvB_rbhV_FkYgOvVTdPeG86hUhHxO69DCfJ1LM9Fbs7OCE4JZKf0XjgPveHGyYjQEIBQpkraQY7ki_3JSOIrkOVJhwWMz6qmcQR0nIuuTlztcnomxDRlX5uYrOpqcgI8VmzHp0bO-4zMSm_bFGm-Xez-SQ-jcPQ');"></div>
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="Student profile picture" style="background-image: url('{{ user_details.avatar_url }}');"></div>
 <div class="flex flex-col">
-<span class="text-sm font-bold text-[#111418] dark:text-white">Alex Morgan</span>
-<span class="text-xs text-[#637588] dark:text-[#96c5a9]">Intern • Tech Dept</span>
+<span class="text-sm font-bold text-[#111418] dark:text-white">{{ user_details.first_name }} {{ user_details.last_name }}</span>
+<span class="text-xs text-[#637588] dark:text-[#96c5a9]">Intern • {{ domain }}</span>
 </div>
 </div>
 <button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">

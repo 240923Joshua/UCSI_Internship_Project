@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InternFlow Dashboard</title>
+
+  <!-- FONTS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet" />
+
+  <!-- TAILWIND -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#38e07b',
+            'background-light': '#f6f8f7',
+            'background-dark': '#122017',
+            'surface-dark': '#1a2c22'
+          },
+          fontFamily: { display: ['Spline Sans', 'sans-serif'] },
+          borderRadius: { DEFAULT: '1rem', lg: '2rem', xl: '3rem', full: '9999px' }
+        }
+      }
+    }
+  </script>
+
+  <!-- SCROLLBAR -->
+  <style>
+    body { font-family: 'Spline Sans', sans-serif; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #122017; }
+    ::-webkit-scrollbar-thumb { background: #264532; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #38e07b; }
+  </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white h-screen flex overflow-hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="w-80 h-full flex flex-col bg-background-light dark:bg-[#0e1a12] border-r border-[#e6e8eb] dark:border-[#1e3a29] shrink-0 relative z-20">
+    
+    <!-- Logo -->
+    <div class="p-6 pb-2">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center justify-center size-10 rounded-xl bg-primary/20 text-primary">
+          <span class="material-symbols-outlined text-3xl">hub</span>
+        </div>
+        <div>
+          <h1 class="font-display font-bold text-xl tracking-tight text-[#111418] dark:text-white">InternFlow</h1>
+          <p class="text-xs font-medium text-[#637588] dark:text-[#96c5a9]">Student Portal</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Status -->
+    <div class="px-4 py-4">
+      <div class="bg-gradient-to-br from-primary/20 to-transparent p-4 rounded-xl border border-primary/20 relative overflow-hidden group cursor-pointer transition-all hover:border-primary/40">
+        <div class="absolute top-0 right-0 p-2 opacity-50">
+          <span class="material-symbols-outlined text-primary animate-pulse">smart_toy</span>
+        </div>
+        <p class="text-xs uppercase tracking-wider font-bold text-primary mb-1">AI Status: Online</p>
+        <p class="text-sm font-medium text-[#111418] dark:text-white/90 leading-tight">Your mentor is ready to review your weekly report.</p>
+      </div>
+    </div>
+
+    <!-- Menu -->
+    <div class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+      <p class="px-4 py-2 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Menu</p>
+
+      <a class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]">
+        <span class="material-symbols-outlined fill-1">dashboard</span>
+        <span class="font-medium">Dashboard</span>
+      </a>
+
+      <a href="{{ url_for('internship_progress') }}" class="group flex items-center justify-between px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 transition-colors">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined group-hover:text-primary transition-colors">pie_chart</span>
+          <span class="font-medium">My Progress</span>
+        </div>
+        <svg class="w-5 h-5" viewBox="0 0 36 36">
+  <path
+    d="M18 2.0845
+       a 15.9155 15.9155 0 0 1 0 31.831
+       a 15.9155 15.9155 0 0 1 0 -31.831"
+    fill="none"
+    stroke="#264532"
+    stroke-width="3"
+  />
+  <path
+    d="M18 2.0845
+       a 15.9155 15.9155 0 0 1 0 31.831
+       a 15.9155 15.9155 0 0 1 0 -31.831"
+    fill="none"
+    stroke="#38e07b"
+    stroke-width="3"
+    stroke-dasharray="{{ progress_percentage }}, 100"
+    stroke-linecap="round"
+  />
+</svg>
+      </a>
+
+      <a href="{{ url_for('weekly_report', internship_id=weeklyReportRedirect.internship_id, week=weeklyReportRedirect.week) }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 transition-colors">
+        <span class="material-symbols-outlined group-hover:text-primary transition-colors">description</span>
+        <span class="font-medium">Weekly Reports</span>
+      </a>
+
+      <a href="{{ url_for('avatar_page') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 transition-colors">
+        <span class="material-symbols-outlined group-hover:text-primary transition-colors animate-pulse">smart_toy</span>
+        <span class="font-medium">AI Avatar Guidance</span>
+      </a>
+
+      <a href="{{ url_for('skill_dev') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 transition-colors">
+        <span class="material-symbols-outlined group-hover:text-primary transition-colors">school</span>
+        <span class="font-medium">Skill Development</span>
+      </a>
+
+      <p class="px-4 py-2 mt-4 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Account</p>
+      <a href="{{ url_for('profile') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 transition-colors">
+        <span class="material-symbols-outlined group-hover:text-primary transition-colors">person</span>
+        <span class="font-medium">Profile</span>
+      </a>
+    </div>
+
+    <!-- User Profile at Bottom -->
+    <div class="p-4 border-t border-[#e6e8eb] dark:border-[#1e3a29]">
+      <div class="flex items-center justify-between gap-3 p-2 rounded-xl bg-[#f0f2f4] dark:bg-[#1a2c22]">
+        <div class="flex items-center gap-3">
+          <div class="size-10 rounded-full bg-cover bg-center" style="background-image: url('{{ user_details.avatar_url }}');"></div>
+          <div class="flex flex-col">
+            <span class="text-sm font-bold text-[#111418] dark:text-white">{{ user_details.first_name }} {{ user_details.last_name }}</span>
+            <span class="text-xs text-[#637588] dark:text-[#96c5a9]">Intern • {{ domain }}</span>
+          </div>
+        </div>
+        <a href="{{url_for('logout')}}" class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+          <span class="material-symbols-outlined text-[20px]">logout</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 h-full overflow-y-auto bg-background-light dark:bg-background-dark relative p-8">
+    
+    <header class="mb-8">
+      <h2 class="text-4xl font-black tracking-tight mb-2">Dashboard</h2>
+      <p class="text-[#637588] dark:text-[#96c5a9] text-lg font-medium">Your internship at a glance</p>
+    </header>
+
+    <!-- AVATAR OVERVIEW -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+      <!-- User Avatar -->
+      <div class="bg-white dark:bg-[#1a2c22] rounded-3xl p-8 border border-[#e6e8eb] dark:border-[#366348] flex items-center gap-6">
+        <div class="size-24 rounded-full bg-primary/20 flex items-center justify-center" style="background-image: url('{{ user_details.avatar_url }}'); background-size: cover; background-position: center;">
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wider font-bold text-[#637588] dark:text-[#96c5a9]">User Profile</p>
+          <h3 class="text-2xl font-bold mt-1">Student Avatar</h3>
+          <p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-1">Your personal profile representation</p>
+          <a href="{{url_for('profile')}}" class="inline-block mt-4 text-primary font-semibold">Edit profile →</a>
+        </div>
+      </div>
+
+      <!-- AI Avatar -->
+      <div class="bg-gradient-to-br from-primary/20 to-transparent dark:from-primary/10 rounded-3xl p-8 border border-[#e6e8eb] dark:border-[#366348] flex items-center gap-6">
+        <div class="size-24 rounded-full bg-primary text-[#122017] flex items-center justify-center shadow-lg shadow-primary/30">
+          <span class="material-symbols-outlined text-5xl">smart_toy</span>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wider font-bold text-[#637588] dark:text-[#96c5a9]">AI Feature</p>
+          <h3 class="text-2xl font-bold mt-1">AI Avatar Available</h3>
+          <p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-1">Interactive assistant for guidance & insights</p>
+          <a href="{{url_for('avatar_page')}}">
+          <span class="inline-block mt-4 px-4 py-2 rounded-full bg-primary text-[#122017] font-bold">Go</span>
+        </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTERNSHIP OVERVIEW -->
+     <div class="flex items-center justify-between mb-6">
+  <h2 class="text-lg font-bold">Internship Overview</h2>
+
+<form method="get" action="{{ url_for('intern_dashboard') }}">
+  <select
+    name="internship_id"
+    id="internshipSelect"
+    class="rounded-xl bg-[#122017] border border-[#366348] text-sm px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+    onchange="this.form.submit()"
+  >
+    {% for internship in internships %}
+      <option
+        value="{{ internship.internship_id }}"
+        {% if internship.internship_id == active_internship_id %}selected{% endif %}
+      >
+        {{ internship.title }} — {{ internship.domain }}
+      </option>
+    {% endfor %}
+  </select>
+</form>
+
+</div>
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- PROGRESSION -->
+      <div class="bg-white dark:bg-[#1a2c22] rounded-3xl p-6 border border-[#e6e8eb] dark:border-[#366348]">
+        <p class="text-xs uppercase tracking-wider font-bold text-[#637588] dark:text-[#96c5a9] mb-2">Overall Progress</p>
+        <p class="text-4xl font-black text-primary mb-4">{{ progressPercentage }}%</p>
+        <div class="w-full h-3 rounded-full bg-[#e6e8eb] dark:bg-[#264532] overflow-hidden">
+          <div class="h-full w-[{{ progressPercentage }}%] bg-primary rounded-full"></div>
+        </div>
+        <p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-3">Internship completion status</p>
+      </div>
+
+      <!-- INTERNSHIP DURATION -->
+      <div class="bg-white dark:bg-[#1a2c22] rounded-3xl p-6 border border-[#e6e8eb] dark:border-[#366348]">
+        <p class="text-xs uppercase tracking-wider font-bold text-[#637588] dark:text-[#96c5a9] mb-2">Internship Duration</p>
+        <p class="text-2xl font-bold mb-1">{{ total_weeks }} Weeks </p>
+        <p class="text-sm text-[#637588] dark:text-[#96c5a9]">Week {{ currentWeek }} of {{ total_weeks }}</p>
+        <div class="mt-4 space-y-1">
+          <div class="flex justify-between text-xs text-[#637588] dark:text-[#96c5a9]"><span>Start</span><span>End</span></div>
+          <div class="w-full h-3 rounded-full bg-[#e6e8eb] dark:bg-[#264532] overflow-hidden">
+            <div class="h-full w-[{{ progressPercentage }}%] bg-primary rounded-full"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEKLY REPORT STATUS -->
+      <div class="bg-gradient-to-br from-primary/20 to-transparent dark:from-primary/10 rounded-3xl p-6 border border-[#e6e8eb] dark:border-[#366348]">
+        <p class="text-xs uppercase tracking-wider font-bold text-[#637588] dark:text-[#96c5a9] mb-3">Weekly Report</p>
+        <div class="flex items-center gap-4 mb-4">
+          <span class="material-symbols-outlined text-primary text-5xl">{{ "check_circle" if weekly_status == "Submitted" else "hourglass_empty" }}</span>
+          <div>
+            <p class="text-2xl font-bold">{{ weekly_status }}</p>
+            <p class="text-sm text-[#637588] dark:text-[#96c5a9]">Week {{ currentWeek }} report received</p>
+          </div>
+        </div>
+        <div class="bg-white/60 dark:bg-black/20 rounded-2xl p-4">
+          <p class="text-sm font-semibold text-primary">Next report due</p>
+          <p class="text-sm text-[#637588] dark:text-[#96c5a9]">{{ next_due }} </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+</body>
+</html>
