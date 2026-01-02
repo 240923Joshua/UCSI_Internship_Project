@@ -79,7 +79,7 @@ def generate_response(prompt, max_tokens=90):
 # -----------------------------
 # TTS FUNCTION
 # -----------------------------
-def synthesize_speech(text, output_file="response.wav"):
+def synthesize_speech(text, output_file="static/audio/response.wav"):
     print("🔊 Synthesizing speech...")
     safe_text = clean_text_for_tts(text)
     tts.tts_to_file(text=safe_text, file_path=output_file,speaker="p262")
