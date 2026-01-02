@@ -202,7 +202,7 @@
 <span class="material-symbols-outlined group-hover:text-primary transition-colors">description</span>
 <span class="font-medium">Weekly Reports</span>
 </a>
-<a class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<a href="{{ url_for('avatar_page') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors animate-pulse">smart_toy</span>
 <span class="font-medium">AI Avatar Guidance</span>
 </a>
@@ -407,7 +407,7 @@
 <span class="text-primary font-bold">{{ counts.completion_percentage }}%</span>
 </div>
 <div class="w-full bg-[#e6e8eb] dark:bg-[#122017] h-3 rounded-full overflow-hidden">
-<div class="bg-primary h-full rounded-full relative" style="width: {{ counts.completion_percentage }}%">
+<div class="bg-primary h-full rounded-full relative" style="--w: {{ counts.completion_percentage }}%; width: var(--w);">
 <div class="absolute right-0 top-0 bottom-0 w-full animate-pulse bg-white/20"></div>
 </div>
 </div>
