@@ -1,9 +1,9 @@
 import csv,io,os
 from flask import Flask,render_template, request, redirect, url_for, session, jsonify, flash,make_response,abort
 from db import get_db, calculate_attendance_percentage
-from avatar import get_avatar_response
+# from avatar import get_avatar_response
 from hasher import hash_password, verify_password
-# from llm import generate_response, build_avatar_prompt, synthesize_speech
+from llm import generate_response, build_avatar_prompt, synthesize_speech
 from memory import get_last_message, set_last_message
 from datetime import date, datetime, timedelta
 from werkzeug.utils import secure_filename
@@ -84,116 +84,6 @@ def myProgressPercentage(db, user_id):
         return 0
     return round(ml_results / internships,2)
 
-@app.route("/attendance/<int:user_id>/<int:internship_id>")
-def attendance_percentage(user_id, internship_id):
-    db = get_db()
-
-    attendance_percentage = calculate_attendance_percentage(db, user_id, internship_id)
-
-    if attendance_percentage is None:
-        return {
-            "message": "Attendance data not available yet",
-            "user_id": user_id,
-            "internship_id": internship_id
-        }
-
-    return {
-        "user_id": user_id,
-        "internship_id": internship_id,
-        "attendance_percentage": attendance_percentage
-    }
-
-@app.route("/ml-results/<int:user_id>/<int:internship_id>")
-def ml_results(user_id, internship_id):
-    db = get_db()
-
-    query = """
-    SELECT predicted_score, risk_level, recommendation
-    FROM ml_results
-    WHERE user_id = ? AND internship_id = ?
-    ORDER BY created_at DESC
-    LIMIT 1;
-    """
-
-    result = db.execute(query, (user_id, internship_id)).fetchone()
-
-    if not result:
-        return {
-            "status": "error",
-            "message": "No ML results found"}
-
-    return {
-        "user_id": user_id,
-        "internship_id": internship_id,
-        "predicted_score": result["predicted_score"],
-        "risk_level": result["risk_level"],
-        "recommendation": result["recommendation"]
-    }
-
-@app.route("/avatar/<int:user_id>/<int:internship_id>")
-def avatar(user_id, internship_id):
-    db = get_db()
-
-    # 1️⃣ Attendance %
-    attendance_query = """
-    SELECT 
-        (SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) * 100.0)
-        / COUNT(*) AS attendance_percentage
-    FROM attendance
-    WHERE user_id = ? AND internship_id = ?;
-    """
-
-    attendance_result = db.execute(
-        attendance_query, (user_id, internship_id)
-    ).fetchone()
-
-    attendance_percentage = calculate_attendance_percentage(db, user_id, internship_id)
-
-    # if attendance_percentage is None:
-    #     return {
-    #         "avatar_state": "neutral",
-    #         "avatar_message": "Attendance data is still being collected.",
-    #         "user_id": user_id,
-    #         "internship_id": internship_id
-    #     }
-
-
-
-    # 2️⃣ ML Results
-    ml_query = """
-    SELECT predicted_score, risk_level
-    FROM ml_results
-    WHERE user_id = ? AND internship_id = ?
-    ORDER BY created_at DESC
-    LIMIT 1;
-    """
-
-    ml_result = db.execute(
-        ml_query, (user_id, internship_id)
-    ).fetchone()
-
-    if not ml_result:
-        return {
-            "avatar_state": "neutral",
-            "avatar_message": "Performance prediction not available yet."
-        }
-
-    # 3️⃣ Avatar decision
-    avatar_response = get_avatar_response(
-        attendance_percentage,
-        ml_result["risk_level"],
-        ml_result["predicted_score"]
-    )
-
-    return {
-        "user_id": user_id,
-        "internship_id": internship_id,
-        "attendance_percentage": round(attendance_percentage, 2) if attendance_percentage is not None else None,
-        "predicted_score": ml_result["predicted_score"],
-        "risk_level": ml_result["risk_level"],
-        "avatar_state": avatar_response["state"],
-        "avatar_message": avatar_response["message"]
-    }
 
 @app.route("/intern/<int:user_id>")
 def intern_dashboard(user_id):
@@ -211,6 +101,11 @@ def intern_dashboard(user_id):
     cursor = db.execute("SELECT * FROM ml_results WHERE user_id = ? ORDER BY created_at DESC", (user_id,))
     ml_results = cursor.fetchall()
     return render_template("intern/finalinterndashboard.html", internships=internships[0], user_details=user_details,domain=domain,ml_results=ml_results)
+
+# @app.route("/flash-test")
+# def flash_test():
+#     flash("This is a test flash message!", "success")
+#     return redirect(url_for("avatar_page"))
 
 @app.route(
     "/intern/weekly-report/<int:internship_id>/<int:week>",
@@ -1206,12 +1101,66 @@ def intern_report_history():
         internship=internship
     )
 
+@app.route("/avatar", methods=["GET", "POST"])
+def avatar_page():
+    if "user_id" not in session or session.get("role") != "intern":
+        return redirect(url_for("login"))
 
+    user_id = session["user_id"]
+    db = get_db()
+
+    internships = db.execute(
+        "SELECT * FROM internship WHERE user_id = ?",
+        (user_id,)
+    ).fetchall()
+    user_details = db.execute(
+        "SELECT * FROM user_details WHERE user_id = ?",
+        (user_id,)
+    ).fetchone()
+    domain=""
+    for i in internships:
+        domain+=i["domain"]+" • "
+    domain = domain[:-3]  # Remove trailing separator
+     # --------------------------------------------------
+    # Latest internship → weekly report redirect logic
+    # --------------------------------------------------
+    latest_internship = db.execute(
+        """
+        SELECT * FROM internship
+        WHERE user_id = ?
+        ORDER BY start_date DESC
+        LIMIT 1
+        """,
+        (user_id,)
+    ).fetchone()
+
+    start_date_latest = datetime.strptime(
+        latest_internship["start_date"], "%Y-%m-%d"
+    ).date()
+
+    today = date.today()
+    current_week = max(1, ((today - start_date_latest).days // 7) + 1)
+
+    weeklyReportRedirect = {
+        "internship_id": latest_internship["internship_id"],
+        "week": current_week
+    }
+    return render_template(
+        "intern/finalavatarchat.html",
+        internships=internships,
+        user_details=user_details,
+        domain=domain,
+        progress_percentage=myProgressPercentage(db, user_id),
+        weeklyReportRedirect=weeklyReportRedirect
+    )
 @app.route("/avatar/chat", methods=["POST"])
 def avatar_chat():
+    if "user_id" not in session:
+        return jsonify({"reply": "Unauthorized"}), 401
+
     data = request.json
 
-    user_id = data.get("user_id")
+    user_id = session["user_id"]   # 🔒 SOURCE OF TRUTH
     internship_id = data.get("internship_id")
     user_message = data.get("message")
     db = get_db()
@@ -1223,7 +1172,7 @@ def avatar_chat():
     ).fetchone()
 
     if not internship:
-        synthesize_speech("Invalid internship.", output_file="response.wav")
+        synthesize_speech("Invalid internship.", output_file="static/audio/response.wav")
         return jsonify({"reply": "Invalid internship."}), 400
 
     domain = internship["domain"]
@@ -1240,7 +1189,7 @@ def avatar_chat():
     ).fetchone()
 
     if attendance_percentage is None or not ml_result:
-        synthesize_speech("I need more performance data before I can guide you properly.", output_file="response.wav")
+        synthesize_speech("I need more performance data before I can guide you properly.", output_file="static/audio/response.wav")
         return jsonify({
             "reply": "I need more performance data before I can guide you properly."
         })
@@ -1258,11 +1207,11 @@ def avatar_chat():
     # Generate response
     reply = generate_response(prompt)
     # Store last message in memory
-    synthesize_speech(reply, output_file="response.wav")
+    synthesize_speech(reply, output_file="static/audio/response.wav")
     set_last_message(user_id, internship_id, reply, user_message)
 
     return jsonify({"reply": reply})
 
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=True)
+    app.run(debug=True, use_reloader=False)
