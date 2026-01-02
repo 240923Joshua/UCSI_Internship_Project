@@ -12,3 +12,4 @@ needtodo.txt
 *.bkp
 templates/intern/pdf_report.html
 weekly_reports.sql
+static/uploads/avatars

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Profile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#38e07b",
+            backgroundDark: "#122017",
+            surfaceDark: "#1a2c22",
+          },
+          fontFamily: {
+            display: ["Spline Sans", "sans-serif"],
+          },
+        },
+      },
+    }
+  </script>
+</head>
+
+<body class="bg-backgroundDark text-white min-h-screen flex items-center justify-center">
+
+  <div class="w-full max-w-lg bg-surfaceDark rounded-2xl p-8 shadow-xl">
+
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold">Edit Profile</h1>
+      <p class="text-sm text-[#96c5a9]">
+        Update your personal information
+      </p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="space-y-3 mb-4">
+          {% for category, message in messages %}
+            <div class="px-4 py-3 rounded-lg text-sm font-medium
+              {% if category == 'success' %}bg-primary text-[#122017]{% endif %}
+              {% if category == 'error' %}bg-red-600 text-white{% endif %}
+            ">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Form -->
+    <form method="POST" class="space-y-4">
+
+      <div>
+        <label class="block text-sm font-medium mb-1">First Name</label>
+        <input type="text" name="first_name" required
+               value="{{ user_details.first_name }}"
+               class="w-full px-4 py-2 rounded-full bg-[#0f1f16] border border-[#264532]
+                      focus:outline-none focus:ring-2 focus:ring-primary">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">Last Name</label>
+        <input type="text" name="last_name" required
+               value="{{ user_details.last_name }}"
+               class="w-full px-4 py-2 rounded-full bg-[#0f1f16] border border-[#264532]
+                      focus:outline-none focus:ring-2 focus:ring-primary">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">Phone Number</label>
+        <input type="text" name="phone_number"
+               value="{{ user_details.phone_number or '' }}"
+               class="w-full px-4 py-2 rounded-full bg-[#0f1f16] border border-[#264532]
+                      focus:outline-none focus:ring-2 focus:ring-primary">
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-3 pt-4">
+        <button type="submit"
+                class="flex-1 py-2.5 rounded-full bg-primary text-[#122017]
+                       font-bold hover:bg-primary/90 transition-colors">
+          Save Changes
+        </button>
+
+        <a href="{{ url_for('profile') }}"
+           class="flex-1 py-2.5 rounded-full border border-[#264532]
+                  text-center hover:bg-white/5 transition-colors">
+          Cancel
+        </a>
+      </div>
+
+    </form>
+  </div>
+
+</body>
+</html>

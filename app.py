@@ -1,4 +1,4 @@
-import csv,io
+import csv,io,os
 from flask import Flask,render_template, request, redirect, url_for, session, jsonify, flash,make_response,abort
 from db import get_db, calculate_attendance_percentage
 from avatar import get_avatar_response
@@ -6,11 +6,21 @@ from hasher import hash_password, verify_password
 # from llm import generate_response, build_avatar_prompt, synthesize_speech
 from memory import get_last_message, set_last_message
 from datetime import date, datetime, timedelta
-
+from werkzeug.utils import secure_filename
 from sqlite3 import IntegrityError
 
 app = Flask(__name__)
 app.secret_key = "d2a0fc31b5ca9b05585d76fd607983601efe4bf8980e10c9a40f13e36a3cb2e3"
+UPLOAD_FOLDER = 'static/uploads/avatars'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return "." in filename and \
+           filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route("/")
 def home():
     # return "Backend is running"
@@ -370,15 +380,13 @@ def weekly_report(internship_id, week):
     WHERE user_id = ? AND internship_id = ? AND week_number = ?
     """,(user_id, internship_id, week)).fetchone()
 
-   
-
     return render_template(
     "intern/weeklyReport.html",
     internships=all_internships,
     selected_internship_id=internship_id,
     current_week=current_week,
     userdetails=db.execute(
-        "SELECT first_name, last_name FROM user_details WHERE user_id = ?",
+        "SELECT first_name, last_name, avatar_url FROM user_details WHERE user_id = ?",
         (user_id,)
     ).fetchone(),
     domain=domain,
@@ -496,21 +504,92 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
-@app.route("/<int:user_id>/profile")
-def profile(user_id):
+@app.route("/update-avatar", methods=["POST"])
+def update_avatar():
+    if "user_id" not in session:
+        return "", 401
+
+    avatar_url = request.json.get("avatar_url")
+
+    db = get_db()
+    db.execute(
+        "UPDATE user_details SET avatar_url = ? WHERE user_id = ?",
+        (avatar_url, session["user_id"])
+    )
+    db.commit()
+    return "", 204
+
+@app.route("/upload-avatar", methods=["POST"])
+def upload_avatar():
+    if "user_id" not in session:
+        return "", 401
+
+    if "avatar" not in request.files:
+        return "", 400
+
+    file = request.files["avatar"]
+
+    if file.filename == "":
+        return "", 400
+
+    if not allowed_file(file.filename):
+        return "", 400
+
+    ext = file.filename.rsplit(".", 1)[1].lower()
+    filename = f"user_{session['user_id']}.{ext}"
+    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+
+    if len(file.read()) > 2 * 1024 * 1024:
+        return "", 413
+    file.seek(0)
+    file.save(filepath)
+
+    avatar_url = f"/static/uploads/avatars/{filename}"
+
+    db = get_db()
+    db.execute(
+        "UPDATE user_details SET avatar_url = ? WHERE user_id = ?",
+        (avatar_url, session["user_id"])
+    )
+    db.commit()
+
+    return "", 204
+
+
+@app.route("/profile")
+def profile():
     if "user_id" not in session or session.get("role") != "intern":
         return redirect(url_for("login"))
+
+    user_id = session["user_id"]   # 🔒 source of truth
     db = get_db()
-    month = {'01': 'January', '02': 'February', '03': 'March', '04': 'April',
-             '05': 'May', '06': 'June', '07': 'July', '08': 'August',
-             '09': 'September', '10': 'October', '11': 'November', '12': 'December'}
-    cursor = db.execute("SELECT * FROM user_details WHERE user_id = ?", (user_id,))
-    user_details = cursor.fetchone()
-    cursor = db.execute("SELECT * FROM internship WHERE user_id = ?", (user_id,))
-    internships = cursor.fetchall()
-    domain=""
-    dates=[]
-    internship = db.execute(
+
+    month = {
+        '01': 'January', '02': 'February', '03': 'March', '04': 'April',
+        '05': 'May', '06': 'June', '07': 'July', '08': 'August',
+        '09': 'September', '10': 'October', '11': 'November', '12': 'December'
+    }
+
+    # --------------------
+    # User details
+    # --------------------
+    user_details = db.execute(
+        "SELECT * FROM user_details WHERE user_id = ?",
+        (user_id,)
+    ).fetchone()
+
+    internships = db.execute(
+        "SELECT * FROM internship WHERE user_id = ?",
+        (user_id,)
+    ).fetchall()
+
+    if not internships:
+        abort(404)
+
+    # --------------------------------------------------
+    # Latest internship → weekly report redirect logic
+    # --------------------------------------------------
+    latest_internship = db.execute(
         """
         SELECT * FROM internship
         WHERE user_id = ?
@@ -520,40 +599,236 @@ def profile(user_id):
         (user_id,)
     ).fetchone()
 
-    if not internship:
-        abort(404)
-
-    internship_id = internship["internship_id"]
-    start_date = datetime.strptime(
-        internship["start_date"], "%Y-%m-%d"
+    start_date_latest = datetime.strptime(
+        latest_internship["start_date"], "%Y-%m-%d"
     ).date()
 
     today = date.today()
-    current_week = ((today - start_date).days // 7) + 1
-    current_week = max(1, current_week)
+    current_week = max(1, ((today - start_date_latest).days // 7) + 1)
 
     weeklyReportRedirect = {
-        "internship_id": internship_id,
+        "internship_id": latest_internship["internship_id"],
         "week": current_week
     }
-    print(weeklyReportRedirect)
-    for i in internships:
-        domain+=i["domain"]+" • "
-        start_split = i["start_date"].split("-")
-        end_split = i["end_date"].split("-")
-        start_formatted = f"{month[start_split[1]]} {int(start_split[2])}, {start_split[0]}"
-        end_formatted = f"{month[end_split[1]]} {int(end_split[2])}, {end_split[0]}"
-        dates.append(f"{start_formatted} — {end_formatted}")
-    domain = domain[:-3]  # Remove trailing separator
-    return render_template("intern/final2profile.html", 
-    user_details=user_details,
-    internships=internships,
-    domain=domain,
-    dates=dates,
-    today=date.today().strftime("%d %b %Y"),
-    progress_percentage=myProgressPercentage(db, user_id),
-    weeklyReportRedirect=weeklyReportRedirect
+
+    # --------------------
+    # Internship selector
+    # --------------------
+    selected_id = request.args.get("internship_id", type=int)
+
+    if selected_id:
+        internship = next(
+            (i for i in internships if i["internship_id"] == selected_id),
+            None
+        )
+    else:
+        internship = internships[0]
+
+    # --------------------
+    # Internship status
+    # --------------------
+    startDateConv = datetime.strptime(internship["start_date"], "%Y-%m-%d").date()
+    endDateConv = datetime.strptime(internship["end_date"], "%Y-%m-%d").date()
+
+    if startDateConv <= today <= endDateConv:
+        status = "ACTIVE"
+    elif today < startDateConv:
+        status = "UPCOMING"
+    else:
+        status = "COMPLETED"
+
+    # --------------------
+    # Completion %
+    # --------------------
+    if today <= startDateConv:
+        completion = 0
+    elif today >= endDateConv:
+        completion = 100
+    else:
+        total_days = (endDateConv - startDateConv).days
+        days_passed = (today - startDateConv).days
+        completion = round((days_passed / total_days) * 100, 2)
+
+    # --------------------
+    # Supervisor (display)
+    # --------------------
+    supervisor = db.execute(
+        "SELECT * FROM user_details WHERE user_id = ?",
+        (internship["supervisor_id"],)
+    ).fetchone()
+
+    # --------------------
+    # Attendance + reports
+    # --------------------
+    internship_id = internship["internship_id"]
+
+    attendance_count = db.execute(
+        """
+        SELECT COUNT(*) AS total_days
+        FROM attendance
+        WHERE user_id = ? AND internship_id = ?
+        """,
+        (user_id, internship_id)
+    ).fetchone()["total_days"]
+
+    weekly_report_counts = db.execute(
+        """
+        SELECT COUNT(*) AS submitted_reports
+        FROM weekly_reports
+        WHERE user_id = ? AND internship_id = ? AND status = 'submitted'
+        """,
+        (user_id, internship_id)
+    ).fetchone()["submitted_reports"]
+
+    skill_count = db.execute(
+        """
+        SELECT COUNT(DISTINCT focus_skill) AS skill_variety
+        FROM weekly_reports
+        WHERE user_id = ? AND internship_id = ? AND status = 'submitted'
+        """,
+        (user_id, internship_id)
+    ).fetchone()["skill_variety"]
+
+    # --------------------
+    # Password last updated
+    # --------------------
+    password_updated = db.execute(
+        """
+        SELECT password_updated_at
+        FROM users
+        WHERE user_id = ?
+        """,
+        (user_id,)
+    ).fetchone()["password_updated_at"]
+
+    password_updated = (
+        datetime.strptime(password_updated, "%Y-%m-%d").date()
+        if password_updated else None
     )
+
+    days_ago = (today - password_updated).days if password_updated else None
+
+    if days_ago is None:
+        label = "Not available"
+    elif days_ago < 30:
+        label = "Less than a month ago"
+    elif days_ago < 365:
+        label = f"{days_ago // 30} month(s) ago"
+    else:
+        label = f"{days_ago // 365} year(s) ago"
+
+    counts = {
+        "attendance_count": attendance_count,
+        "weekly_report_counts": weekly_report_counts,
+        "skill_count": skill_count,
+        "completion_percentage": completion,
+        "password_last_updated": label
+    }
+
+    # --------------------
+    # Domain display string
+    # --------------------
+    domain = " • ".join(i["domain"] for i in internships)
+
+    return render_template(
+        "intern/profile.html",
+        user_details=user_details,
+        internships=internships,
+        selected_internship=internship,
+        selected_internship_id=internship["internship_id"],
+        domain=domain,
+        start_date=startDateConv.strftime("%d %b %Y"),
+        end_date=endDateConv.strftime("%d %b %Y"),
+        today=today.strftime("%d %b %Y"),
+        progress_percentage=myProgressPercentage(db, user_id),
+        weeklyReportRedirect=weeklyReportRedirect,
+        supervisor=supervisor,
+        status=status,
+        counts=counts
+    )
+
+@app.route("/profile/edit", methods=["GET", "POST"])
+def edit_profile():
+    if "user_id" not in session or session.get("role") != "intern":
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    db = get_db()
+
+    user_details = db.execute(
+        "SELECT * FROM user_details WHERE user_id = ?",
+        (user_id,)
+    ).fetchone()
+
+    if not user_details:
+        abort(404)
+
+    if request.method == "POST":
+        first_name = request.form.get("first_name").strip()
+        last_name = request.form.get("last_name").strip()
+        phone = request.form.get("phone_number").strip()
+
+        if not first_name or not last_name:
+            flash("First name and last name are required", "error")
+            return redirect(url_for("edit_profile"))
+
+        db.execute(
+            """
+            UPDATE user_details
+            SET first_name = ?, last_name = ?, phone_number = ?
+            WHERE user_id = ?
+            """,
+            (first_name, last_name, phone, user_id)
+        )
+        db.commit()
+
+        flash("Profile updated successfully", "success")
+        return redirect(url_for("profile"))
+
+    return render_template(
+        "intern/edit_profile.html",
+        user_details=user_details
+    )
+
+
+@app.route("/change-password", methods=["GET", "POST"])
+def change_password():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    
+    db=get_db()
+
+    if request.method == "POST":
+        current = request.form["current_password"]
+        new = request.form["new_password"]
+        confirm = request.form["confirm_password"]
+
+        user = db.execute(
+            "SELECT password FROM users WHERE user_id = ?",
+            (session["user_id"],)
+        ).fetchone()
+
+        if not verify_password(user["password"], current):
+            flash("Current password is incorrect", "error")
+            return redirect(url_for("change_password"))
+
+        if new != confirm:
+            flash("Passwords do not match", "error")
+            return redirect(url_for("change_password"))
+
+        hashed = hash_password(new)
+
+        db.execute("""
+            UPDATE users
+            SET password = ?, password_updated_at = CURRENT_DATE
+            WHERE user_id = ?
+        """, (hashed, session["user_id"]))
+        db.commit()
+
+        flash("Password updated successfully", "success")
+        return redirect(url_for("profile"))
+
+    return render_template("change_password.html")
 
 @app.route("/intern/export-report/<int:internship_id>")
 def export_report(internship_id):
