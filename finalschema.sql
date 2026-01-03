@@ -1,8 +1,8 @@
 -- --------------------------------------------------------
 -- Host:                         E:\UCSI Internship\project\UCSI_Internship_Project\internship.db
--- Server version:               3.50.1
+-- Server version:               3.51.0
 -- Server OS:                    
--- HeidiSQL Version:             12.11.0.7065
+-- HeidiSQL Version:             12.14.0.7165
 -- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS internship (
     weeks INTEGER NOT NULL, --include stipend???
     start_date TEXT,   -- YYYY-MM-DD
     end_date TEXT, supervisor_id INTEGER
-REFERENCES users(user_id),
+REFERENCES users(user_id), location_name TEXT, location_type TEXT, supervisor_title TEXT, supervisor_department TEXT,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
@@ -96,12 +96,13 @@ CREATE TABLE IF NOT EXISTS skills (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table internship.users
-CREATE TABLE IF NOT EXISTS users (
-    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    password TEXT NOT NULL,
-    role TEXT NOT NULL
-        CHECK (role IN ('intern', 'supervisor'))
+-- Dumping structure for table internship.supervisors
+CREATE TABLE IF NOT EXISTS supervisors (
+    supervisor_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    title TEXT,
+    department TEXT,
+    email TEXT
 );
 
 -- Data exporting was unselected.
@@ -112,10 +113,20 @@ CREATE TABLE IF NOT EXISTS user_details (
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    phone_number TEXT, "department" TEXT NULL DEFAULT NULL,
+    phone_number TEXT, "department" TEXT NULL DEFAULT NULL, avatar_url TEXT,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 ;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table internship.users
+CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    password TEXT NOT NULL,
+    role TEXT NOT NULL
+        CHECK (role IN ('intern', 'supervisor'))
+, password_updated_at DATE);
 
 -- Data exporting was unselected.
 

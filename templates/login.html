@@ -29,6 +29,36 @@
         }
       }
     }
+     document.addEventListener("DOMContentLoaded", () => {
+    const messages = document.querySelectorAll(".flash-message");
+
+    messages.forEach((msg, index) => {
+      // Stagger slide-in
+      setTimeout(() => {
+        msg.classList.add("show");
+      }, index * 120);
+
+      // Auto-dismiss after 3s
+      setTimeout(() => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+
+        setTimeout(() => {
+          msg.remove();
+        }, 500);
+      }, 3000 + index * 120);
+
+      // Click to dismiss early
+      msg.addEventListener("click", () => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+
+        setTimeout(() => {
+          msg.remove();
+        }, 300);
+      });
+    });
+  });
   </script>
 
   <!-- SCROLLBAR -->
@@ -38,11 +68,41 @@
     ::-webkit-scrollbar-track { background: #122017; }
     ::-webkit-scrollbar-thumb { background: #264532; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #38e07b; }
+
+    .flash-message.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    .flash-message.hide {
+      transform: translateX(20px);
+      opacity: 0;
+      transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    }
   </style>
 </head>
 
 <body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white h-screen flex items-center justify-center">
+      <!-- Flash Messages -->
+<div id="flash-container"
+     class="fixed top-6 right-6 z-50 space-y-3 pointer-events-none">
 
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div
+        class="flash-message pointer-events-auto
+               px-5 py-4 rounded-xl shadow-lg text-sm font-medium
+               transform translate-x-20 opacity-0
+               transition-all duration-500 ease-out
+               {% if category == 'success' %}bg-green-600 text-white{% endif %}
+               {% if category == 'warning' %}bg-yellow-400 text-black{% endif %}
+               {% if category == 'error' %}bg-red-600 text-white{% endif %}"
+      >
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+</div>
   <!-- LOGIN CARD -->
   <div class="bg-white dark:bg-[#1a2c22] rounded-3xl shadow-lg shadow-black/20 dark:shadow-black/40 p-10 w-full max-w-md">
     

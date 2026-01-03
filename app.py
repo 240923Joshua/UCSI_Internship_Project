@@ -401,36 +401,44 @@ def weekly_report_redirect(internship_id):
         week=current_week
     ))
 
-@app.route("/supervisor/<int:supervisor_id>/dashboard")
-def supervisor_dashboard(supervisor_id):
+@app.route("/supervisor/dashboard")
+def supervisor_dashboard():
     if "user_id" not in session or session.get("role") != "supervisor":
         return redirect(url_for("login"))
+    user_id = session["user_id"]
     db = get_db()
+    return render_template("supervisor/finalsupervisordashboard.html")
 
-    query = """
-    SELECT
-        u.user_id AS intern_id,
-        ud.first_name,
-        ud.last_name,
-        i.internship_id,
-        i.title,
-        i.domain
-    FROM internship i
-    JOIN users u ON i.user_id = u.user_id
-    JOIN user_details ud ON u.user_id = ud.user_id
-    WHERE i.supervisor_id = ?
-      AND u.role = 'intern';
-    """
+# @app.route("/supervisor/<int:supervisor_id>/dashboard")
+# def supervisor_dashboard(supervisor_id):
+#     if "user_id" not in session or session.get("role") != "supervisor":
+#         return redirect(url_for("login"))
+#     db = get_db()
 
-    rows = db.execute(query, (supervisor_id,)).fetchall()
+#     query = """
+#     SELECT
+#         u.user_id AS intern_id,
+#         ud.first_name,
+#         ud.last_name,
+#         i.internship_id,
+#         i.title,
+#         i.domain
+#     FROM internship i
+#     JOIN users u ON i.user_id = u.user_id
+#     JOIN user_details ud ON u.user_id = ud.user_id
+#     WHERE i.supervisor_id = ?
+#       AND u.role = 'intern';
+#     """
 
-    internships = [dict(row) for row in rows]
+#     rows = db.execute(query, (supervisor_id,)).fetchall()
 
-    return render_template(
-        "supervisor/supervisor_dashboard.html",
-        supervisor_id=supervisor_id,
-        internships=internships
-    )
+#     internships = [dict(row) for row in rows]
+
+#     return render_template(
+#         "supervisor/supervisor_dashboard.html",
+#         supervisor_id=supervisor_id,
+#         internships=internships
+#     )
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -451,11 +459,10 @@ def login():
     """
 
     user = db.execute(query, (email,)).fetchone()
-
     if not user or not verify_password(user["password"], password):
+        flash("Invalid email or password", "error")
         return render_template(
             "login.html",
-            error="Invalid email or password"
         )
 
     # Store session
@@ -467,7 +474,7 @@ def login():
         return redirect(url_for("intern_dashboard"))
 
     if user["role"] == "supervisor":
-        return redirect(url_for("supervisor_dashboard", supervisor_id=user["user_id"]))
+        return redirect(url_for("supervisor_dashboard"))
 
     return "Unknown role", 403
 
