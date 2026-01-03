@@ -427,7 +427,7 @@ def supervisor_dashboard(supervisor_id):
     internships = [dict(row) for row in rows]
 
     return render_template(
-        "supervisor_dashboard.html",
+        "supervisor/supervisor_dashboard.html",
         supervisor_id=supervisor_id,
         internships=internships
     )
