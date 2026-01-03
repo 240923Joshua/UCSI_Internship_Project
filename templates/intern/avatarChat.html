@@ -177,10 +177,6 @@
 <span class="material-symbols-outlined fill-1 animate-pulse">smart_toy</span>
 <span class="font-medium">AI Avatar Guidance</span>
 </a>
-<a href="{{ url_for('skill_dev') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
-<span class="material-symbols-outlined group-hover:text-primary transition-colors">school</span>
-<span class="font-medium">Skill Development</span>
-</a>
 <p class="px-4 py-2 mt-4 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Account</p>
 <a href="{{ url_for('profile') }}"class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors">person</span>
@@ -234,7 +230,7 @@
     id="internshipSelect"
     class="w-full rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-sm text-[#111418] dark:text-white px-3 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
   >
-    {% for internship in internships %}
+    {% for internship in internships[::-1] %}
       <option value="{{ internship.internship_id }}">
         {{ internship.title }} — {{ internship.domain }}
       </option>
