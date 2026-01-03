@@ -435,7 +435,7 @@ def supervisor_dashboard(supervisor_id):
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        return render_template("login.html")
+        return render_template("new_log.html")
 
     # POST logic starts here
     email = request.form.get("email")
