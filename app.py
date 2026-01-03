@@ -24,8 +24,7 @@ def allowed_file(filename):
 
 @app.route("/")
 def home():
-    # return "Backend is running"
-    return render_template("home.html")
+    return redirect(url_for('login'))
 
 def get_skill_stats(db, user_id, internship_id):
     cursor = db.execute("""
@@ -405,9 +404,118 @@ def weekly_report_redirect(internship_id):
 def supervisor_dashboard():
     if "user_id" not in session or session.get("role") != "supervisor":
         return redirect(url_for("login"))
-    user_id = session["user_id"]
+    supervisor_id = session["user_id"]
     db = get_db()
-    return render_template("supervisor/finalsupervisordashboard.html")
+    interns = db.execute("""
+    SELECT
+        u.user_id,
+        ud.first_name || ' ' || ud.last_name AS name,
+        i.domain
+    FROM internship i
+    JOIN users u ON u.user_id = i.user_id
+    JOIN user_details ud ON ud.user_id = u.user_id
+    WHERE i.supervisor_id = ?
+    """, (supervisor_id,)).fetchall()
+    total_interns = len(interns)
+
+    submitted_reports = db.execute("""
+        SELECT COUNT(*)
+        FROM weekly_reports wr
+        JOIN internship i ON i.internship_id = wr.internship_id
+        WHERE i.supervisor_id = ?
+          AND wr.status = 'submitted'
+    """, (supervisor_id,)).fetchone()[0]
+
+    pending_reviews = submitted_reports
+    
+    recent_reports = db.execute("""
+    SELECT
+        wr.report_id,
+        ud.first_name || ' ' || ud.last_name AS intern_name,
+        wr.week_number,
+        i.domain,
+        wr.submitted_at
+    FROM weekly_reports wr
+    JOIN internship i ON i.internship_id = wr.internship_id
+    JOIN user_details ud ON ud.user_id = i.user_id
+    WHERE i.supervisor_id = ?
+      AND wr.status = 'submitted'
+    ORDER BY wr.submitted_at DESC
+    LIMIT 5
+    """, (supervisor_id,)).fetchall() 
+
+    active_internships = db.execute("""
+    SELECT COUNT(*) AS active_internships
+    FROM internship
+    WHERE supervisor_id = ?
+      AND start_date <= DATE('now')
+      AND end_date >= DATE('now')
+    """, (supervisor_id,)).fetchone()["active_internships"]
+
+    top_intern = db.execute("""
+    SELECT
+        ud.first_name || ' ' || ud.last_name AS intern_name,
+        i.domain, ud.avatar_url,
+        COUNT(wr.report_id) AS report_count
+    FROM weekly_reports wr
+    JOIN internship i ON i.internship_id = wr.internship_id
+    JOIN user_details ud ON ud.user_id = i.user_id
+    WHERE i.supervisor_id = ?
+      AND wr.status = 'submitted'
+    GROUP BY i.user_id
+    ORDER BY report_count DESC
+    LIMIT 1
+    """, (supervisor_id,)).fetchone()
+
+    supervisor_details = db.execute("""
+    SELECT * from user_details
+    WHERE user_id = ?
+    """, (supervisor_id,)).fetchone()
+    return render_template("supervisor/supervisorDashboard.html", interns=interns, total_interns=total_interns,
+    supervisor_details=supervisor_details,submitted_reports=submitted_reports,pending_reviews=pending_reviews,
+    recent_reports=recent_reports,active_internships=active_internships,top_intern=top_intern)
+
+@app.route("/supervisor/report/<int:report_id>")
+def supervisor_view_report(report_id):
+    if "user_id" not in session or session.get("role") != "supervisor":
+        return redirect(url_for("login"))
+
+    supervisor_id = session["user_id"]
+    db = get_db()
+
+    cursor = db.execute("""
+        SELECT
+            wr.report_id,
+            wr.week_number,
+            wr.task_description,
+            wr.focus_skill,
+            wr.skill_rating,
+            wr.stress_level,
+            wr.self_evaluation,
+            wr.challenges,
+            wr.next_week_priorities,
+            wr.evidence_link,
+            wr.submitted_at,
+            ud.first_name || ' ' || ud.last_name AS intern_name,
+            i.domain
+        FROM weekly_reports wr
+        JOIN internship i ON i.internship_id = wr.internship_id
+        JOIN user_details ud ON ud.user_id = i.user_id
+        WHERE wr.report_id = ?
+          AND i.supervisor_id = ?
+          AND wr.status = 'submitted'
+    """, (report_id, supervisor_id))
+
+    report = cursor.fetchone()
+
+    if report is None:
+        return redirect(url_for("supervisor_dashboard"))
+
+    return render_template(
+        "supervisor/view_weekly_report.html",
+        report=report
+    )
+
 
 # @app.route("/supervisor/<int:supervisor_id>/dashboard")
 # def supervisor_dashboard(supervisor_id):
