@@ -7,6 +7,7 @@ from hasher import hash_password, verify_password
 from memory import get_last_message, set_last_message
 from datetime import date, datetime, timedelta
 from werkzeug.utils import secure_filename
+from collections import defaultdict
 from sqlite3 import IntegrityError
 
 app = Flask(__name__)
@@ -103,7 +104,7 @@ def intern_dashboard():
 
     internship_id = request.args.get("internship_id", type=int)
     if not internship_id:
-        internship_id = internships[0]["internship_id"]
+        internship_id = internships[-1]["internship_id"]
 
     cursor = db.execute("""
     SELECT *
@@ -407,23 +408,97 @@ def skill_dev():
 
     user_id = session["user_id"]
     db = get_db()
-
+    skill_ratings = defaultdict(list)
     user_details = db.execute(
         "SELECT * FROM user_details WHERE user_id = ?",
         (user_id,)
     ).fetchone()
 
+    internships = db.execute("""
+        SELECT * FROM internship WHERE user_id = ?
+    """, (user_id,)).fetchall()
+    if not internships:
+        abort(404)
+    internship_id = request.args.get("internship_id", type=int)
+
+    if not internship_id:
+        internship_id = internships[0]["internship_id"]
+    
+    internship = db.execute("""
+    SELECT *
+    FROM internship
+    WHERE internship_id = ? AND user_id = ?
+    """, (internship_id, user_id)).fetchone()
+
+    if not internship:
+        abort(403)
 
     skills = db.execute("""
-        SELECT s.name, ds.domain
-        FROM skills s
-        JOIN domain_skills ds ON ds.skill_id = s.skill_id
-        WHERE ds.domain IN (
-            SELECT DISTINCT domain FROM internship WHERE user_id = ?
-        )
-        ORDER BY ds.domain, s.name
-    """, (user_id,)).fetchall()
+        SELECT s.skill_id, s.name
+        FROM domain_skills ds
+        JOIN skills s ON s.skill_id = ds.skill_id
+        WHERE ds.domain = ?
+        ORDER BY s.name
+    """, (internship["domain"],)).fetchall()
 
+    weekly_skill_reports = db.execute("""
+    SELECT focus_skill, skill_rating
+    FROM weekly_reports
+    WHERE user_id = ?
+      AND internship_id = ?
+      AND status = 'submitted'
+      AND focus_skill IS NOT NULL
+      AND skill_rating IS NOT NULL
+    """, (user_id, internship_id)).fetchall()
+
+    for report in weekly_skill_reports:
+        skill_name = report["focus_skill"].strip().lower()
+        rating = report["skill_rating"]
+
+        skill_ratings[skill_name].append(rating)
+    skill_progress_map = {}
+
+    for skill_name, ratings in skill_ratings.items():
+        avg_rating = sum(ratings) / len(ratings)
+        progress_percent = round((avg_rating / 5) * 100)
+
+        skill_progress_map[skill_name] = {
+            "average": round(avg_rating, 1),
+            "progress": progress_percent
+        }
+    enriched_skills = []
+
+    for skill in skills:  # skills = domain skills from DB
+        skill_name = skill["name"]
+        lookup_key = skill_name.strip().lower()
+
+        if lookup_key in skill_progress_map:
+            raw_progress = skill_progress_map[lookup_key]["progress"]
+            average = skill_progress_map[lookup_key]["average"]
+            progress = min(raw_progress, 100)
+        else:
+            progress = 0
+            average = None
+
+        enriched_skills.append({
+            "name": skill_name,
+            "progress": progress,
+            "average": average
+        })
+    if enriched_skills:
+        avg_progress = round(
+            sum(skill["progress"] for skill in enriched_skills) / len(enriched_skills)
+        )
+    else:
+        avg_progress = 0
+    if avg_progress < 40:
+        skill_level = "Beginner"
+    elif avg_progress < 70:
+        skill_level = "Intermediate"
+    else:
+        skill_level = "Advanced"
+
+    # --------------------------------------------------
     latest_internship = db.execute(
         """
         SELECT * FROM internship
@@ -440,14 +515,15 @@ def skill_dev():
 
     today = date.today()
     current_week = max(1, ((today - start_date_latest).days // 7) + 1)
+    # --------------------------------------------------
 
     domain=""
-    internships = db.execute("""
+    ints = db.execute("""
         SELECT domain
         FROM internship
         WHERE user_id = ?
     """, (user_id,)).fetchall()
-    for i in internships:
+    for i in ints:
         domain+=i["domain"]+" • "
     domain = domain[:-3]
 
@@ -457,9 +533,10 @@ def skill_dev():
         "internship_id": latest_internship["internship_id"],
         "week": current_week
     }
-
-    return render_template("intern/finalskilldev.html", skills=skills,
-    weeklyReportRedirect=weeklyReportRedirect, user_details=user_details, domain=domain, progress_percentage=progress_percentage)
+    return render_template("intern/finalskilldev.html",
+    weeklyReportRedirect=weeklyReportRedirect, user_details=user_details, domain=domain, progress_percentage=progress_percentage,
+    internships=internships,active_internship_id = internship_id, internship=internship, skills=enriched_skills,
+    skill_level=skill_level)
 
 @app.route("/supervisor/<int:supervisor_id>/dashboard")
 def supervisor_dashboard(supervisor_id):
@@ -654,7 +731,7 @@ def profile():
             None
         )
     else:
-        internship = internships[0]
+        internship = internships[-1]
 
     # --------------------
     # Internship status
@@ -943,7 +1020,7 @@ def internship_progress():
             None
         )
     else:
-        selected_internship = internships[0]
+        selected_internship = internships[-1]
         selected_internship_id = selected_internship["internship_id"]
 
     # Safety check (ownership)
