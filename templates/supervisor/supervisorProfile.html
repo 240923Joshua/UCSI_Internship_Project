@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Supervisor Profile | InternFlow</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        primary: '#38e07b',
+        'background-light': '#f6f8f7',
+        'background-dark': '#122017',
+        'surface-dark': '#1a2c22'
+      },
+      fontFamily: {
+        display: ['Spline Sans', 'sans-serif']
+      },
+      borderRadius: {
+        xl: '2rem',
+        full: '9999px'
+      }
+    }
+  }
+}
+</script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white h-screen flex overflow-hidden">
+
+<!-- SIDEBAR -->
+<aside class="w-80 bg-background-light dark:bg-[#0e1a12] border-r border-[#e6e8eb] dark:border-[#1e3a29] flex flex-col">
+
+  <!-- Logo -->
+  <div class="p-6 flex items-center gap-3">
+    <div class="size-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+      <span class="material-symbols-outlined text-3xl">hub</span>
+    </div>
+    <div>
+      <h1 class="font-bold text-xl">InternFlow</h1>
+      <p class="text-xs text-[#637588] dark:text-[#96c5a9]">Supervisor Portal</p>
+    </div>
+  </div>
+
+  <!-- Menu -->
+  <nav class="flex-1 px-4 space-y-1">
+    <p class="px-4 py-2 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase">Menu</p>
+
+    <a href="{{ url_for('supervisor_dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">dashboard</span>
+      Dashboard
+    </a>
+
+    <a href="{{ url_for('supervisor_interns') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">groups</span>
+      Interns
+    </a>
+
+    <a href="sup_perform.html" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">analytics</span>
+      Performance
+    </a>
+
+    <a href="" class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] font-semibold">
+      <span class="material-symbols-outlined">person</span> Profile
+    </a>
+  </nav>
+
+  <!-- User -->
+  <div class="p-4 border-t border-[#e6e8eb] dark:border-[#1e3a29]">
+    <div class="flex items-center gap-3 p-3 rounded-xl bg-[#f0f2f4] dark:bg-[#1a2c22]">
+      <div class="size-10 rounded-full bg-cover bg-center" style="background-image:url('{{ supervisor_details.avatar_url }}');"></div>
+      <div class="flex-1">
+        <p class="text-sm font-bold">{{ supervisor_details.first_name }} {{ supervisor_details.last_name }}</p>
+        <p class="text-xs text-[#637588] dark:text-[#96c5a9]">Company Mentor</p>
+      </div>
+      <a href="{{ url_for('logout') }}">
+      <button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+      <span class="material-symbols-outlined text-[20px]">logout</span>
+      </button>
+      </a>
+    </div>
+  </div>
+
+</aside>
+
+<!-- MAIN -->
+<main class="flex-1 p-8 overflow-y-auto">
+<header class="mb-8">
+<div class="flex items-center justify-between gap-6">
+  
+  <!-- Left: Title + subtitle -->
+  <div>
+    <h1 class="text-4xl font-extrabold text-white">
+      Supervisor Profile
+    </h1>
+    <p class="mt-1 text-green-300">
+      Manage your professional information and supervision details
+    </p>
+  </div>
+
+  <!-- Right: Date button -->
+  <button
+    class="flex shrink-0 items-center gap-2 px-5 py-2.5 rounded-full
+           bg-white dark:bg-[#264532]
+           border border-[#e6e8eb] dark:border-[#366348]
+           text-[#111418] dark:text-white font-medium
+           hover:bg-[#f0f2f4] dark:hover:bg-[#366348]
+           transition-colors shadow-sm">
+    <span class="material-symbols-outlined text-[20px]">calendar_today</span>
+    <span>{{ today }}</span>
+  </button>
+
+</div>
+</header>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+<!-- PROFILE CARD -->
+<div class="bg-white dark:bg-[#1a2c22] rounded-3xl p-6 border border-[#e6e8eb] dark:border-[#366348] text-center"><div class="flex justify-center">
+<div class="size-28 rounded-full border-4 border-white dark:border-[#1a2c22]
+            shadow-xl bg-cover bg-center relative z-10 mb-4"
+     style="background-image: url('{{ supervisor_details.avatar_url }}');">
+
+  <button onclick="openAvatarModal()"
+          class="absolute bottom-0 right-0 p-1.5 rounded-full bg-primary shadow">
+    <span class="material-symbols-outlined text-[18px]">edit</span>
+  </button>
+
+</div>
+</div>
+
+  <h3 class="text-2xl font-bold">{{ supervisor_details.first_name }} {{ supervisor_details.last_name }}</h3>
+  <p class="text-[#637588] dark:text-[#96c5a9] mb-4">{{  supervisor_details.designation }}</p>
+
+  <div class="flex gap-2">
+    <a href="{{ url_for('edit_supervisor_profile') }}"
+      class="flex-1 py-2 rounded-full bg-primary text-[#122017] font-bold text-center">
+      Edit Profile
+    </a>
+  </div>
+</div>
+
+<!-- CONTACT INFO -->
+<div class="bg-white dark:bg-[#1a2c22] rounded-3xl p-6 border border-[#e6e8eb] dark:border-[#366348]">
+  <h4 class="font-bold mb-4 flex items-center gap-2">
+    <span class="material-symbols-outlined text-primary">contact_page</span>
+    Contact Information
+  </h4>
+
+  <div class="space-y-4 text-sm">
+    <p><strong>Email:</strong> {{ supervisor_details.email }}</p>
+    <p><strong>Phone:</strong> {{ supervisor_details.phone_number }}</p>
+    <p><strong>Department:</strong> {{ supervisor_details.department if supervisor_details.department else "-"}}</p>
+    <p><strong>Employee ID:</strong> {{ supervisor_details.employee_id }}</p>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="bg-white dark:bg-[#1a2c22] rounded-3xl p-6 border border-[#e6e8eb] dark:border-[#366348]">
+  <h4 class="font-bold mb-4 flex items-center gap-2">
+    <span class="material-symbols-outlined text-primary">analytics</span>
+    Supervision Overview
+  </h4>
+
+  <div class="grid grid-cols-2 gap-4 text-center">
+    <div class="p-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017]">
+      <p class="text-2xl font-black">{{ overview.interns_assigned }}</p>
+      <p class="text-xs text-[#637588] dark:text-[#96c5a9]">Interns Assigned</p>
+    </div>
+    <div class="p-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017]">
+      <p class="text-2xl font-black">{{ overview.avg_completion if overview.avg_completion or 0 }}</p>
+      <p class="text-xs text-[#637588] dark:text-[#96c5a9]">Avg Completion</p>
+    </div>
+    <div class="p-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017]">
+      <p class="text-2xl font-black">{{ overview.reports_reviewed }}</p>
+      <p class="text-xs text-[#637588] dark:text-[#96c5a9]">Reports Reviewed</p>
+    </div>
+    <div class="p-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017]">
+      <p class="text-2xl font-black">{{ overview.experience_years }}</p>
+      <p class="text-xs text-[#637588] dark:text-[#96c5a9]">Experience</p>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- SECURITY -->
+<div class="mt-8 bg-white dark:bg-[#1a2c22] rounded-3xl p-6 border border-[#e6e8eb] dark:border-[#366348] flex justify-between items-center">
+  <div>
+    <h4 class="font-bold flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">lock</span>
+      Security Settings
+    </h4>
+    <p class="text-sm text-[#637588] dark:text-[#96c5a9]">Last password change: 2 months ago</p>
+  </div>
+<a href="{{ url_for('change_password') }}">
+<button class="px-6 py-3 rounded-full border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white font-medium hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-900/30 transition-colors flex items-center gap-2 w-full sm:w-auto justify-center">
+<span class="material-symbols-outlined text-[20px]">key</span>
+                            Change Password
+                        </button>
+</a>
+</div>
+
+</main>
+<!-- Avatar Modal -->
+<div id="avatarModal"
+     class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+
+  <div class="bg-white dark:bg-[#1a2c22] rounded-3xl w-[420px] p-6">
+    <h3 class="text-xl font-bold mb-4">Update Profile Picture</h3>
+
+    <!-- Predefined Avatars -->
+    <p class="text-sm font-medium mb-2">Choose an avatar</p>
+    <div class="grid grid-cols-4 gap-3 mb-4">
+      {% for i in range(1,7) %}
+      <div class="avatar-option" onclick="selectAvatar(this)">
+      <img src="{{ url_for('static', filename='avatars/avatar' ~ i ~ '.png') }}"
+           class="rounded-full cursor-pointer hover:ring-2 hover:ring-primary">
+      <span class="check-icon material-symbols-outlined">check_circle</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Upload -->
+    <p class="text-sm font-medium mb-2">Or upload your own</p>
+    <input type="file" accept="image/*" id="avatarUpload"
+           class="w-full text-sm mb-4">
+
+    <div class="flex gap-3">
+          <button id="saveAvatarBtn"
+                  onclick="saveAvatar()"
+                  disabled
+                  class="flex-1 bg-primary text-[#122017] py-2 rounded-full font-bold
+                        opacity-50 cursor-not-allowed transition-all">
+            Save
+          </button> 
+      <button onclick="closeAvatarModal()"
+              class="flex-1 border py-2 rounded-full">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+</body>
+<script>
+    let selectedAvatar = null;
+
+function openAvatarModal() {
+  document.getElementById("avatarModal").classList.remove("hidden");
+}
+
+function closeAvatarModal() {
+  document.getElementById("avatarModal").classList.add("hidden");
+}
+
+function enableSave() {
+  const btn = document.getElementById("saveAvatarBtn");
+  btn.disabled = false;
+  btn.classList.remove("opacity-50", "cursor-not-allowed");
+}
+
+function disableSave() {
+  const btn = document.getElementById("saveAvatarBtn");
+  btn.disabled = true;
+  btn.classList.add("opacity-50", "cursor-not-allowed");
+}
+
+function saveAvatar() {
+  const fileInput = document.getElementById("avatarUpload");
+
+  // Case 1: predefined avatar
+  if (selectedAvatarUrl) {
+    fetch("/update-avatar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ avatar_url: selectedAvatarUrl })
+    }).then(() => location.reload());
+    return;
+  }
+
+  // Case 2: uploaded avatar
+  if (fileInput.files.length > 0) {
+    const formData = new FormData();
+    formData.append("avatar", fileInput.files[0]);
+
+    fetch("/upload-avatar", {
+      method: "POST",
+      body: formData
+    }).then(() => location.reload());
+  }
+}
+
+function selectAvatar(element) {
+  document.querySelectorAll(".avatar-option")
+    .forEach(el => el.classList.remove("selected"));
+
+  element.classList.add("selected");
+
+  selectedAvatarUrl = element.querySelector("img").src;
+
+  document.getElementById("avatarUpload").value = "";
+
+  enableSave(); // ✅ key line
+}
+document.getElementById("avatarUpload").addEventListener("change", (e) => {
+  if (e.target.files.length > 0) {
+    document.querySelectorAll(".avatar-option")
+      .forEach(el => el.classList.remove("selected"));
+
+    selectedAvatarUrl = null;
+
+    enableSave(); // ✅ upload enables save
+  } else {
+    disableSave();
+  }
+});
+</script>
+</html>

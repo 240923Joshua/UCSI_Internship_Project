@@ -915,6 +915,150 @@ def supervisor_weeklyreports(internship_id):
     return render_template("supervisor/supervisorWeeklyReports.html",supervisor_details=supervisor_details,report=reports, submitted_percent=submitted_percent,
     reports_not_submitted=reports_not_submitted,prev_week=prev_week,next_week=next_week,internship_id=internship_id)
 
+@app.route("/supervisor/profile")
+def supervisor_profile():
+    if "user_id" not in session or session.get('role') != 'supervisor':
+        return redirect(url_for('login'))
+    supervisor_id = session['user_id']
+    db = get_db()
+
+    today = date.today()
+
+    supervisor_details = db.execute("""
+        SELECT
+            ud.user_id,
+            ud.first_name,
+            ud.last_name,
+            ud.email,
+            ud.phone_number,
+            ud.avatar_url,
+
+            sd.employee_id,
+            sd.designation,
+            sd.department,
+            sd.organization,
+            sd.experience_years
+        FROM user_details ud
+        LEFT JOIN supervisor_details sd
+            ON ud.user_id = sd.user_id
+        WHERE ud.user_id = ?
+    """, (supervisor_id,)).fetchone()
+
+    overview = {}
+
+    overview["interns_assigned"] = db.execute("""
+        SELECT COUNT(DISTINCT user_id)
+        FROM internship
+        WHERE supervisor_id = ?
+    """, (supervisor_id,)).fetchone()[0]
+
+    overview["reports_reviewed"] = db.execute("""
+        SELECT COUNT(*)
+        FROM weekly_reports wr
+        JOIN internship i ON i.internship_id = wr.internship_id
+        WHERE i.supervisor_id = ?
+        AND wr.status = 'reviewed'
+    """, (supervisor_id,)).fetchone()[0]
+
+    overview["avg_completion"] = round(
+        db.execute("""
+            SELECT AVG(
+            CASE
+                WHEN DATE('now') >= end_date THEN 100
+                WHEN DATE('now') <= start_date THEN 0
+                ELSE
+                ROUND(
+                    (JULIANDAY('now') - JULIANDAY(start_date)) * 100.0 /
+                    NULLIF(JULIANDAY(end_date) - JULIANDAY(start_date), 0),
+                    0
+                )
+            END
+            )
+            FROM internship
+            WHERE supervisor_id = ?
+        """, (supervisor_id,)).fetchone()[0] or 0
+    )
+
+    overview["experience_years"] = supervisor_details["experience_years"] or 0
+
+    return render_template("supervisor/supervisorProfile.html",supervisor_details=supervisor_details,today=today.strftime("%d %b %Y"),
+    overview=overview)
+
+@app.route("/supervisor/profile/edit", methods=["GET", "POST"])
+def edit_supervisor_profile():
+    if "user_id" not in session or session.get("role") != "supervisor":
+        return redirect(url_for("login"))
+
+    supervisor_id = session["user_id"]
+    db = get_db()
+
+    db.execute("""
+INSERT OR IGNORE INTO supervisor_details (user_id)
+VALUES (?)
+""", (supervisor_id,))
+
+    if request.method == "POST":
+        # 1️⃣ Update user_details
+        db.execute("""
+            UPDATE user_details
+            SET
+                first_name = ?,
+                last_name = ?,
+                email = ?,
+                phone_number = ?
+            WHERE user_id = ?
+        """, (
+            request.form["first_name"].strip(),
+            request.form["last_name"].strip(),
+            request.form["email"].strip(),
+            request.form["phone_number"].strip(),
+            supervisor_id
+        ))
+
+        # 2️⃣ Update supervisor_details
+        db.execute("""
+            UPDATE supervisor_details
+            SET
+                employee_id = ?,
+                designation = ?,
+                department = ?,
+                organization = ?
+            WHERE user_id = ?
+        """, (
+            request.form["employee_id"].strip(),
+            request.form["designation"].strip(),
+            request.form["department"].strip(),
+            request.form.get("organization", "").strip(),
+            supervisor_id
+        ))
+
+        db.commit()
+        flash("Profile updated successfully", "success")
+        return redirect(url_for("supervisor_profile"))
+
+    # GET → load existing data
+    supervisor = db.execute("""
+        SELECT
+            ud.user_id,
+            ud.first_name,
+            ud.last_name,
+            ud.email,
+            ud.phone_number,
+            sd.employee_id,
+            sd.designation,
+            sd.department,
+            sd.organization
+        FROM user_details ud
+        LEFT JOIN supervisor_details sd
+            ON ud.user_id = sd.user_id
+        WHERE ud.user_id = ?
+    """, (supervisor_id,)).fetchone()
+
+    return render_template(
+        "supervisor/editSupervisorProfile.html",
+        supervisor=supervisor
+    )
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
@@ -1240,7 +1384,7 @@ def edit_profile():
         return redirect(url_for("profile"))
 
     return render_template(
-        "intern/edit_profile.html",
+        "intern/editProfile.html",
         user_details=user_details
     )
 
@@ -1251,6 +1395,7 @@ def change_password():
         return redirect(url_for("login"))
     
     db=get_db()
+    previous_page = request.referrer
 
     if request.method == "POST":
         current = request.form["current_password"]
@@ -1280,9 +1425,9 @@ def change_password():
         db.commit()
 
         flash("Password updated successfully", "success")
-        return redirect(url_for("profile"))
+        return redirect(url_for('profile') if session['role'] == "intern" else url_for('supervisor_profile'))
 
-    return render_template("changePassword.html")
+    return render_template("changePassword.html",previous_page=previous_page)
 
 @app.route("/intern/export-report/<int:internship_id>")
 def export_report(internship_id):
