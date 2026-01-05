@@ -218,8 +218,7 @@ def weekly_report(internship_id, week):
         FROM weekly_reports
         WHERE user_id = ? AND internship_id = ? AND week_number = ?
     """, (user_id, internship_id, week)).fetchone()
-
-    if existing and existing["status"] == "submitted" and action == "submit":
+    if existing and (existing["status"] == "submitted" or existing['status'] == 'reviewed') and action == "submit":
         flash("Weekly report already submitted for this week.", "warning")
         return redirect(
             url_for("internship_progress", internship_id=internship_id)
@@ -254,7 +253,7 @@ def weekly_report(internship_id, week):
         status = "draft" if action == "draft" else "submitted"
 
         if existing:
-            if existing["status"] == "submitted":
+            if existing["status"] == "submitted" or existing["status"] == 'reviewed':
                 flash("Weekly report already submitted for this week.", "warning")
                 return redirect(url_for("internship_progress", internship_id=internship_id))
 
@@ -453,6 +452,7 @@ def supervisor_dashboard():
 
     top_intern = db.execute("""
     SELECT
+        ud.user_id,
         ud.first_name || ' ' || ud.last_name AS intern_name,
         i.domain, ud.avatar_url,
         COUNT(wr.report_id) AS report_count
@@ -466,13 +466,22 @@ def supervisor_dashboard():
     LIMIT 1
     """, (supervisor_id,)).fetchone()
 
+    supervisor_weeklyReportRedirect = db.execute("""
+        SELECT internship_id 
+        FROM internship
+        WHERE supervisor_id = ?
+        ORDER BY internship_id DESC
+        LIMIT 1
+    """, (supervisor_id,)).fetchone()[0]
+
     supervisor_details = db.execute("""
     SELECT * from user_details
     WHERE user_id = ?
     """, (supervisor_id,)).fetchone()
     return render_template("supervisor/supervisorDashboard.html", interns=interns, total_interns=total_interns,
     supervisor_details=supervisor_details,submitted_reports=submitted_reports,pending_reviews=pending_reviews,
-    recent_reports=recent_reports,active_internships=active_internships,top_intern=top_intern)
+    recent_reports=recent_reports,active_internships=active_internships,top_intern=top_intern,
+    supervisor_weeklyReportRedirect=supervisor_weeklyReportRedirect)
 
 @app.route("/supervisor/report/<int:report_id>")
 def supervisor_view_report(report_id):
@@ -511,7 +520,7 @@ def supervisor_view_report(report_id):
         return redirect(url_for("supervisor_dashboard"))
 
     return render_template(
-        "supervisor/view_weekly_report.html",
+        "supervisor/viewWeeklyReport.html",
         report=report
     )
 
@@ -534,6 +543,7 @@ def supervisor_interns():
             i.domain,
             i.start_date,
             i.end_date,
+            i.internship_id,
 
             -- Attendance %
             MIN(
@@ -637,8 +647,15 @@ def supervisor_interns():
 
     domains = [d["domain"] for d in domains]
 
-
-    return render_template('supervisor/supervisorInterns.html',supervisor_details=supervisor_details,interns=interns,domains=domains)
+    supervisor_weeklyReportRedirect = db.execute("""
+        SELECT internship_id 
+        FROM internship
+        WHERE supervisor_id = ?
+        ORDER BY internship_id DESC
+        LIMIT 1
+    """, (supervisor_id,)).fetchone()[0]
+    return render_template('supervisor/supervisorInterns.html',supervisor_details=supervisor_details,interns=interns,domains=domains,
+    supervisor_weeklyReportRedirect=supervisor_weeklyReportRedirect)
 
 @app.route("/supervisor/intern/<int:intern_id>")
 def supervisor_view_intern(intern_id):
@@ -647,7 +664,7 @@ def supervisor_view_intern(intern_id):
 
     supervisor_id = session["user_id"]
     db = get_db()
-    
+    previous_page = request.referrer
     cursor = db.execute("""
         SELECT
             ud.first_name || ' ' || ud.last_name AS intern_name,
@@ -720,10 +737,183 @@ def supervisor_view_intern(intern_id):
         return redirect(url_for("supervisor_interns"))
 
     return render_template(
-        "supervisor/view_intern_profile.html",
-        intern=intern
+        "supervisor/viewInternProfile.html",
+        intern=intern,
+        previous_page=previous_page
     )
 
+@app.route("/supervisor/weekly-reports/<int:internship_id>", methods=['GET','POST'])
+def supervisor_weeklyreports(internship_id):
+    if "user_id" not in session or session.get('role') != 'supervisor':
+        return redirect(url_for('login'))
+    supervisor_id = session['user_id']
+    db = get_db()
+    prev_week = None
+    next_week = None
+    if request.method == "POST":
+        report_id = request.form.get("report_id")
+        feedback = request.form.get("feedback")
+
+        if not report_id:
+            flash("Invalid report action", "error")
+            return redirect(url_for(
+                "supervisor_weeklyreports",
+                internship_id=internship_id
+            ))
+
+        db.execute("""
+            UPDATE weekly_reports
+            SET
+                status = 'reviewed',
+                supervisor_feedback = ?,
+                reviewed_at = DATETIME('now')
+            WHERE report_id = ?
+            AND internship_id = ?
+        """, (feedback, report_id, internship_id))
+
+        db.commit()
+
+        flash("Report reviewed and feedback saved", "success")
+
+        return redirect(url_for(
+            "supervisor_weeklyreports",
+            internship_id=internship_id
+        ))
+
+
+    week = request.args.get("week", type=int)
+
+    stats = db.execute("""
+    WITH internship_expected AS (
+        SELECT
+            i.internship_id,
+            MAX(
+                CAST((JULIANDAY('now') - JULIANDAY(i.start_date)) / 7 AS INTEGER),
+                0
+            ) AS expected_reports
+        FROM internship i
+        WHERE i.supervisor_id = ?
+    ),
+    submitted AS (
+        SELECT
+            wr.internship_id,
+            COUNT(*) AS submitted_reports
+        FROM weekly_reports wr
+        WHERE wr.status = 'submitted'
+        GROUP BY wr.internship_id
+    )
+    SELECT
+        SUM(
+            CASE
+                WHEN ie.expected_reports - COALESCE(s.submitted_reports, 0) > 0
+                THEN ie.expected_reports - COALESCE(s.submitted_reports, 0)
+                ELSE 0
+            END
+        ) AS reports_not_submitted,
+        SUM(ie.expected_reports) AS total_expected_reports,
+        SUM(COALESCE(s.submitted_reports, 0)) AS total_submitted_reports
+    FROM internship_expected ie
+    LEFT JOIN submitted s ON s.internship_id = ie.internship_id;
+    """, (supervisor_id,)).fetchone()
+
+    total_expected = stats["total_expected_reports"] or 0
+    total_submitted = stats["total_submitted_reports"] or 0
+    reports_not_submitted = stats["reports_not_submitted"] or 0
+
+    if total_expected > 0:
+        submitted_percent = round((total_submitted / total_expected) * 100)
+    else:
+        submitted_percent = 0
+    if week is None:
+        reports = db.execute("""
+        SELECT
+                wr.report_id,
+                wr.week_number,
+                wr.task_description,
+                wr.focus_skill,
+                wr.skill_rating,
+                wr.stress_level,
+                wr.self_evaluation,
+                wr.challenges,
+                wr.next_week_priorities,
+                wr.evidence_link,
+                wr.submitted_at,
+                wr.status,
+                wr.supervisor_feedback,
+                wr.reviewed_at,
+
+            ud.first_name || ' ' || ud.last_name AS intern_name,
+            ud.email,
+            ud.avatar_url,
+            i.domain
+        FROM weekly_reports wr
+        JOIN internship i ON i.internship_id = wr.internship_id
+        JOIN user_details ud ON ud.user_id = wr.user_id
+        WHERE i.supervisor_id = ?
+        AND i.internship_id = ?
+            AND (wr.status = 'submitted' or wr.status = 'reviewed')
+        ORDER BY wr.week_number DESC
+        LIMIT 1
+        """,(supervisor_id, internship_id)).fetchone()
+    else:
+        reports = db.execute("""
+        SELECT
+                wr.report_id,
+                wr.week_number,
+                wr.task_description,
+                wr.focus_skill,
+                wr.skill_rating,
+                wr.stress_level,
+                wr.self_evaluation,
+                wr.challenges,
+                wr.next_week_priorities,
+                wr.evidence_link,
+                wr.submitted_at,
+                wr.status,
+                wr.supervisor_feedback,
+                wr.reviewed_at,
+
+            ud.first_name || ' ' || ud.last_name AS intern_name,
+            ud.email,
+            ud.avatar_url,
+            i.domain
+        FROM weekly_reports wr
+        JOIN internship i ON i.internship_id = wr.internship_id
+        JOIN user_details ud ON ud.user_id = wr.user_id
+        WHERE i.supervisor_id = ?
+        AND i.internship_id = ?
+            AND (wr.status = 'submitted' or wr.status = 'reviewed')
+        AND wr.week_number = ?
+        ORDER BY wr.submitted_at DESC
+        """, (supervisor_id, internship_id, week)).fetchone()
+
+    if reports:
+            print('hello')
+            current_week = reports["week_number"]
+
+            if current_week > 1:
+                prev_week = current_week - 1
+
+            candidate_next = current_week + 1
+
+            exists = db.execute("""
+                SELECT 1
+                FROM weekly_reports wr
+                JOIN internship i ON i.internship_id = wr.internship_id
+                WHERE i.internship_id = ?
+                AND i.supervisor_id = ?
+                AND wr.week_number = ?
+                AND (wr.status = 'submitted' OR wr.status = 'reviewed')
+            """, (internship_id, supervisor_id, candidate_next)).fetchone()
+            if exists:
+                next_week = candidate_next
+
+    supervisor_details = db.execute("""
+    SELECT * FROM user_details
+    WHERE user_id = ?
+    """,(supervisor_id,)).fetchone()  
+    return render_template("supervisor/supervisorWeeklyReports.html",supervisor_details=supervisor_details,report=reports, submitted_percent=submitted_percent,
+    reports_not_submitted=reports_not_submitted,prev_week=prev_week,next_week=next_week,internship_id=internship_id)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -1426,7 +1616,7 @@ def view_all_skills():
     skill_stats = get_skill_stats(db, user_id, internship_id)
 
     return render_template(
-        "intern/intern_skills.html",
+        "intern/internSkills.html",
         skill_stats=skill_stats
     )
 
@@ -1465,7 +1655,7 @@ def intern_report_history():
     ).fetchall()
 
     return render_template(
-        "intern/finalreporthistory.html",
+        "intern/reportHistory.html",
         reports=reports,
         internship=internship
     )

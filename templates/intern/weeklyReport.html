@@ -379,14 +379,59 @@ class="text-[#637588] dark:text-[#96c5a9] font-medium hover:text-[#111418] dark:
 value="draft">
 Save as Draft
 </button>
-<button type="submit" name="action" id="submitBtn" value="submit" 
-class="flex items-center gap-2 px-8 py-3 rounded-full bg-primary text-[#122017] font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:scale-[1.02] active:scale-95 transition-all" 
+{% if existing_report['status'] == 'submitted'or existing_report['status'] == 'reviewed' %}
+<button
+    type="submit"
+    name="action"
+    id="submitBtn"
+    value="submit"
+    disabled
+    class="flex items-center gap-2 px-8 py-3 rounded-full
+           bg-primary text-[#122017] font-bold
+           shadow-lg shadow-primary/25
+           transition-all
+           disabled:bg-gray-300
+           disabled:text-gray-500
+           disabled:shadow-none
+           disabled:cursor-not-allowed
+           disabled:hover:scale-100
+           disabled:active:scale-95">
+           
+    <span>{{ "Update Report" if existing_report else "Submit Weekly Report" }}</span>
+</button>
+{% else %}
+<button type="submit" name="action" id="submitBtn" value="submit" disabled
+class="ml-auto flex items-center gap-2 px-8 py-3 rounded-full bg-primary text-[#122017] font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:scale-[1.02] active:scale-95 transition-all" 
 >
 <span>{{"Update Report" if existing_report else "Submit Weekly Report"}}</span>
-<span class="material-symbols-outlined text-[20px]">send</span>
 </button>
+<span class="material-symbols-outlined text-[20px]">send</span>
+{% endif %}
+
 </div>
 </form>
+{% if existing_report.status == 'reviewed' %}
+<div class="mt-6 bg-[#13261f] p-5 rounded-xl border border-green-700">
+    <div class="flex items-center gap-2 mb-2">
+        <span class="text-green-300 font-semibold">
+            Supervisor Feedback
+        </span>
+        <span class="px-2 py-0.5 text-xs rounded-full bg-green-800 text-green-200">
+            Reviewed
+        </span>
+    </div>
+
+    <p class="text-green-100 whitespace-pre-line">
+        {{ existing_report.supervisor_feedback or "No feedback provided." }}
+    </p>
+
+    {% if existing_report.reviewed_at %}
+    <p class="mt-2 text-xs text-green-500">
+        Reviewed on {{ existing_report.reviewed_at }}
+    </p>
+    {% endif %}
+</div>
+{% endif %}
 </section>
 <div class="flex gap-4 p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 text-blue-900 dark:text-blue-200">
 <span class="material-symbols-outlined shrink-0 mt-0.5">info</span>

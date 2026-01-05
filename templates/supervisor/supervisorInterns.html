@@ -68,10 +68,10 @@
       Interns
     </a>
 
-    <a href="sup_week_rep.html" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+    <!-- <a href="{{ url_for('supervisor_weeklyreports', internship_id=supervisor_weeklyReportRedirect)}}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
       <span class="material-symbols-outlined">description</span>
       Weekly Reports
-    </a>
+    </a> -->
 
     <a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
       <span class="material-symbols-outlined">analytics</span>
@@ -92,11 +92,11 @@
         <p class="text-sm font-bold">{{ supervisor_details.first_name }} {{ supervisor_details.last_name }}</p>
         <p class="text-xs text-[#637588] dark:text-[#96c5a9]">Company Mentor</p>
       </div>
-<a href="{{ url_for('logout') }}">
-<button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
-<span class="material-symbols-outlined text-[20px]">logout</span>
-</button>
-</a>
+      <a href="{{ url_for('logout') }}">
+      <button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+      <span class="material-symbols-outlined text-[20px]">logout</span>
+      </button>
+      </a>
     </div>
   </div>
 
@@ -194,14 +194,30 @@
           {% endif %}
         </p>
       </div>
-      <div class="mt-4">
+        <div class="mt-4 space-y-2">
           <a
-              href="{{ url_for('supervisor_view_intern', intern_id=intern['user_id']) }}"
-              class="inline-block w-full text-center bg-green-400 text-black font-semibold py-2 rounded-xl hover:bg-green-300 transition"
+            href="{{ url_for('supervisor_view_intern', intern_id=intern['user_id']) }}"
+            class="block w-full text-center bg-green-400 text-black font-semibold py-2 rounded-xl hover:bg-green-300 transition"
           >
-              View Full Profile
+            View Full Profile
           </a>
 
+          {% if intern['status'] == 'Active' %}
+            <a
+              href="{{ url_for('supervisor_weeklyreports', internship_id=intern['internship_id']) }}"
+              class="block w-full px-3 py-2 rounded-xl bg-green-400 text-black font-semibold mt-2 text-center hover:bg-green-300 transition"
+            >
+              View Weekly Reports →
+            </a>
+          {% else %}
+            <button
+              disabled
+              class="block w-full px-3 py-2 rounded-xl bg-gray-600 text-gray-300 font-semibold mt-2 text-center cursor-not-allowed"
+              title="Internship completed"
+            >
+              Weekly Reports Closed
+            </button>
+          {% endif %}
           <p class="mt-2 text-sm font-semibold
               {% if intern['status'] == 'Active' %}
                   text-green-400

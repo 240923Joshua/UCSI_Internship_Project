@@ -14,7 +14,7 @@
       {% for report in reports %}
         <div class="p-4 rounded-xl border border-[#e6e8eb] dark:border-[#366348] bg-white dark:bg-[#1a2c22]">
           <div class="flex justify-between items-center">
-            <span class="font-semibold">
+            <span class="font-semibold text-white">
               Week {{ report.week_number }}
             </span>
             <span class="text-sm text-green-600 font-medium">
@@ -24,6 +24,28 @@
           <p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-2">
             {{ report.task_description }}
           </p>
+         {% if report.status == 'reviewed' %}
+          <div class="mt-6 bg-[#13261f] p-5 rounded-xl border border-green-700">
+              <div class="flex items-center gap-2 mb-2">
+                  <span class="text-green-300 font-semibold">
+                      Supervisor Feedback
+                  </span>
+                  <span class="px-2 py-0.5 text-xs rounded-full bg-green-800 text-green-200">
+                      Reviewed
+                  </span>
+              </div>
+
+              <p class="text-green-100 whitespace-pre-line">
+                  {{ report.supervisor_feedback or "No feedback provided." }}
+              </p>
+
+              {% if report.reviewed_at %}
+              <p class="mt-2 text-xs text-green-500">
+                  Reviewed on {{ report.reviewed_at }}
+              </p>
+              {% endif %}
+          </div>
+          {% endif %}
         </div>
       {% endfor %}
     </div>

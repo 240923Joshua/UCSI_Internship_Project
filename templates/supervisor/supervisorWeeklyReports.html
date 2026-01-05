@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>InternFlow | Weekly Reports Viewer</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        primary: "#38e07b",
+        "background-dark": "#122017",
+        "surface-dark": "#1a2c22"
+      },
+      fontFamily: {
+        display: ["Spline Sans", "sans-serif"]
+      }
+    }
+  }
+}
+</script>
+</head>
+
+<body class="bg-background-dark text-white h-screen overflow-hidden flex">
+
+<!-- SIDEBAR (UNCHANGED FORMAT) -->
+
+<aside class="w-80 h-full flex flex-col bg-[#0e1a12] border-r border-[#1e3a29] shrink-0">
+  
+<div class="p-6 flex items-center gap-3">
+    <div class="size-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+      <span class="material-symbols-outlined text-3xl">hub</span>
+    </div>
+    <div>
+      <h1 class="font-bold text-xl">InternFlow</h1>
+      <p class="text-xs text-[#637588] dark:text-[#96c5a9]">Supervisor Portal</p>
+    </div>
+  </div>
+  <nav class="flex-1 px-4 space-y-1">
+
+    <p class="px-4 py-2 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase">Menu</p>
+
+    <a href="{{ url_for('supervisor_dashboard' )}}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">dashboard</span>
+      Dashboard
+    </a>
+
+    <a href="{{ url_for('supervisor_interns') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">groups</span>
+      Interns
+    </a>
+
+    <a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">analytics</span>
+      Performance
+    </a>
+
+    <a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">person</span>
+      Profile
+    </a>
+  </nav>
+  <!-- User -->
+  <div class="p-4 border-t border-[#e6e8eb] dark:border-[#1e3a29]">
+    <div class="flex items-center gap-3 p-3 rounded-xl bg-[#f0f2f4] dark:bg-[#1a2c22]">
+      <div class="size-10 rounded-full bg-cover bg-center" style="background-image:url('{{ supervisor_details.avatar_url }}');"></div>
+      <div class="flex-1">
+        <p class="text-sm font-bold">{{ supervisor_details.first_name }} {{ supervisor_details.last_name }}</p>
+        <p class="text-xs text-[#637588] dark:text-[#96c5a9]">Company Mentor</p>
+      </div>
+      <a href="{{ url_for('logout') }}">
+      <button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+      <span class="material-symbols-outlined text-[20px]">logout</span>
+      </button>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="flex-1 overflow-y-auto p-8 space-y-8">
+
+<div class="flex-1 p-8 space-y-8 bg-[#0f1f16] text-white">
+
+  <!-- Header -->
+  <div>
+    <h1 class="text-3xl font-bold">Weekly Reports</h1>
+    <p class="text-sm text-green-300">View student submissions</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-[#162a1f] rounded-xl p-6">
+      <p class="text-sm text-green-300">Reports Submitted</p>
+      <p class="text-4xl font-bold text-green-400">
+        {{ submitted_percent }}%
+      </p>
+    </div>
+
+    <div class="bg-[#162a1f] rounded-xl p-6">
+      <p class="text-sm text-red-300">Reports Not Submitted</p>
+      <p class="text-4xl font-bold text-red-400">
+        {{ reports_not_submitted }}
+      </p>
+    </div>
+  </div>
+
+{% if report %}
+  <!-- Student Card -->
+  <div class="bg-[#162a1f] rounded-xl p-6 flex items-center gap-6">
+    <img
+      src="{{ report.avatar_url or '/static/default-avatar.png' }}"
+      class="w-16 h-16 rounded-full object-cover"
+    />
+    <div>
+      <h2 class="text-xl font-semibold">{{ report.intern_name }}</h2>
+      <p class="text-sm text-green-300">{{ report.domain }}</p>
+      <p class="text-xs text-gray-400">
+        Week {{ report.week_number }} • {{ report.submitted_at }}
+      </p>
+    </div>
+  </div>
+
+
+  
+  <!-- Weekly Report Details -->
+  <div class="bg-[#162a1f] rounded-xl p-6 space-y-6">
+
+    <h3 class="text-lg font-semibold">Weekly Report</h3>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <p class="text-sm text-green-300">Attendance</p>
+        <p class="text-xl font-bold">{{ report.attendance_percentage }}%</p>
+      </div>
+
+      <div>
+        <p class="text-sm text-green-300">Focus Skill</p>
+        <p class="text-xl font-bold">{{ report.focus_skill }}</p>
+      </div>
+
+      <div>
+        <p class="text-sm text-green-300">Skill Rating</p>
+        <p class="text-xl font-bold">
+          {{ report.skill_rating }}/10
+        </p>
+      </div>
+
+      <div>
+        <p class="text-sm text-green-300">Stress Level</p>
+        <p class="text-xl font-bold">
+          {{ report.stress_level }}/5
+        </p>
+      </div>
+    </div>
+
+    <div>
+      <p class="text-sm text-green-300 mb-1">Task Description</p>
+      <div class="bg-[#0f1f16] rounded-lg p-4 text-sm">
+        {{ report.task_description }}
+      </div>
+    </div>
+
+    <div>
+      <p class="text-sm text-green-300 mb-1">Self Evaluation</p>
+      <div class="bg-[#0f1f16] rounded-lg p-4 text-sm">
+        {{ report.self_evaluation }}
+      </div>
+    </div>
+
+    <div>
+      <p class="text-sm text-green-300 mb-1">Challenges</p>
+      <div class="bg-[#0f1f16] rounded-lg p-4 text-sm">
+        {{ report.challenges }}
+      </div>
+      {% if report.status == 'submitted' %}
+      <form method="POST" class="mt-6 bg-[#13261f] p-6 rounded-xl border border-green-800">
+
+          <h3 class="text-lg font-semibold text-green-300 mb-3">
+              Supervisor Feedback
+          </h3>
+
+          <textarea
+              name="feedback"
+              rows="4"
+              placeholder="Write feedback for the intern..."
+              class="w-full rounded-lg bg-[#0e1d18] border border-green-700 text-green-100 p-3 focus:outline-none focus:ring-2 focus:ring-green-500"
+              required
+          ></textarea>
+
+          <input type="hidden" name="report_id" value="{{ report.report_id }}">
+
+          <button
+              type="submit"
+              class="mt-4 w-full bg-green-400 hover:bg-green-300 text-black font-semibold py-2 rounded-lg transition"
+          >
+              ✔ Approve & Save Feedback
+          </button>
+      </form>
+      {% endif %}
+      {% if report.status == 'reviewed' %}
+      <div class="mt-6 bg-[#13261f] p-6 rounded-xl border border-green-700">
+          <h3 class="text-lg font-semibold text-green-300 mb-2">
+              Supervisor Feedback
+          </h3>
+
+          <p class="text-green-100 whitespace-pre-line">
+              {{ report.supervisor_feedback or "No feedback provided." }}
+          </p>
+
+          <p class="mt-2 text-sm text-green-500">
+              Reviewed on {{ report.reviewed_at }}
+          </p>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+  <!-- Navigation -->
+<div class="flex justify-between mt-8">
+  {% if prev_week %}
+    <a
+      href="{{ url_for('supervisor_weeklyreports',
+          internship_id=internship_id,
+          week=prev_week) }}"
+      class="text-green-400 hover:underline"
+    >
+      ← Previous
+    </a>
+  {% else %}
+    <span></span>
+  {% endif %}
+
+  {% if next_week %}
+    <a
+      href="{{ url_for('supervisor_weeklyreports',
+          internship_id=internship_id,
+          week=next_week) }}"
+      class="text-green-400 hover:underline"
+    >
+      Next →
+    </a>
+  {% endif %}
+</div>
+
+</div>
+
+{% else %}
+  <p class="text-gray-400 italic">
+    No submitted weekly reports yet.
+  </p>
+{% endif %}
+
+</main>
+
+</body>
+</html>

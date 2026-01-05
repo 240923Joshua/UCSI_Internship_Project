@@ -68,11 +68,6 @@
       Interns
     </a>
 
-    <a href="sup_week_rep.html" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
-      <span class="material-symbols-outlined">description</span>
-      Weekly Reports
-    </a>
-
     <a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
       <span class="material-symbols-outlined">analytics</span>
       Performance
@@ -175,9 +170,14 @@
           </p>
         </div>
       </div>
+            <a
+              href="{{ url_for('supervisor_view_intern', intern_id=top_intern['user_id']) }}"
+            >
+
       <button class="mt-6 w-full py-2 rounded-full bg-primary text-[#122017] font-bold">
         View Profile
       </button>
+      </a>
       {% else %}
         <p class="text-sm italic text-muted">
           No reports submitted yet.
