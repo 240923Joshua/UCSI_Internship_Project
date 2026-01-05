@@ -1,7 +1,6 @@
 import csv,io,os
 from flask import Flask,render_template, request, redirect, url_for, session, jsonify, flash,make_response,abort
 from db import get_db, calculate_attendance_percentage
-# from avatar import get_avatar_response
 from hasher import hash_password, verify_password
 # from llm import generate_response, build_avatar_prompt, synthesize_speech
 from memory import get_last_message, set_last_message
@@ -725,38 +724,6 @@ def supervisor_view_intern(intern_id):
         intern=intern
     )
 
-
-
-# @app.route("/supervisor/<int:supervisor_id>/dashboard")
-# def supervisor_dashboard(supervisor_id):
-#     if "user_id" not in session or session.get("role") != "supervisor":
-#         return redirect(url_for("login"))
-#     db = get_db()
-
-#     query = """
-#     SELECT
-#         u.user_id AS intern_id,
-#         ud.first_name,
-#         ud.last_name,
-#         i.internship_id,
-#         i.title,
-#         i.domain
-#     FROM internship i
-#     JOIN users u ON i.user_id = u.user_id
-#     JOIN user_details ud ON u.user_id = ud.user_id
-#     WHERE i.supervisor_id = ?
-#       AND u.role = 'intern';
-#     """
-
-#     rows = db.execute(query, (supervisor_id,)).fetchall()
-
-#     internships = [dict(row) for row in rows]
-
-#     return render_template(
-#         "supervisor/supervisor_dashboard.html",
-#         supervisor_id=supervisor_id,
-#         internships=internships
-#     )
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>InternFlow | Weekly Reports Viewer</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        primary: "#38e07b",
+        "background-dark": "#122017",
+        "surface-dark": "#1a2c22"
+      },
+      fontFamily: {
+        display: ["Spline Sans", "sans-serif"]
+      }
+    }
+  }
+}
+</script>
+</head>
+
+<body class="bg-background-dark text-white h-screen overflow-hidden flex">
+
+<!-- SIDEBAR (UNCHANGED FORMAT) -->
+<aside class="w-80 h-full flex flex-col bg-[#0e1a12] border-r border-[#1e3a29] shrink-0">
+  <nav class="flex-1 px-4 space-y-1">
+    <p class="px-4 py-2 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase">Menu</p>
+
+    <a href="sup_dash.html" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">dashboard</span>
+      Dashboard
+    </a>
+
+    <a href="sup_intern.html" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">groups</span>
+      Interns
+    </a>
+
+    <a href="sup_week_rep.html" class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] font-semibold">
+      <span class="material-symbols-outlined">description</span>
+      Weekly Reports
+    </a>
+
+    <a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">analytics</span>
+      Performance
+    </a>
+
+    <a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">person</span>
+      Profile
+    </a>
+  </nav>
+  <!-- User -->
+  <div class="p-4 border-t border-[#e6e8eb] dark:border-[#1e3a29]">
+    <div class="flex items-center gap-3 p-3 rounded-xl bg-[#f0f2f4] dark:bg-[#1a2c22]">
+      <div class="size-10 rounded-full bg-primary text-[#122017] flex items-center justify-center font-bold">
+        S
+      </div>
+      <div class="flex-1">
+        <p class="text-sm font-bold">Supervisor</p>
+        <p class="text-xs text-[#637588] dark:text-[#96c5a9]">Company Mentor</p>
+      </div>
+      <span class="material-symbols-outlined">logout</span>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="flex-1 overflow-y-auto p-8 space-y-8">
+
+<!-- PAGE HEADER -->
+<div class="flex justify-between items-center">
+  <div>
+    <h2 class="text-4xl font-black">Weekly Reports</h2>
+    <p class="text-[#96c5a9]">View student submissions</p>
+  </div>
+  <div class="flex gap-3">
+    <button onclick="prevStudent()" class="px-5 py-2 rounded-full bg-surface-dark">◀ Prev</button>
+    <button onclick="nextStudent()" class="px-5 py-2 rounded-full bg-surface-dark">Next ▶</button>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="bg-surface-dark p-6 rounded-xl">
+    <p class="text-sm text-[#96c5a9]">Reports Submitted</p>
+    <p id="submittedPercent" class="text-4xl font-black text-primary">0%</p>
+  </div>
+  <div class="bg-surface-dark p-6 rounded-xl">
+    <p class="text-sm text-[#96c5a9]">Reports Not Submitted</p>
+    <p id="notSubmitted" class="text-4xl font-black text-red-400">0</p>
+  </div>
+</div>
+
+<!-- STUDENT NAME (PLACED BELOW STATS) -->
+<div class="bg-surface-dark p-6 rounded-xl">
+  <p class="text-sm text-[#96c5a9]">Student</p>
+  <p id="studentName" class="text-3xl font-bold mt-1">—</p>
+</div>
+
+<!-- WEEKLY REPORT (BELOW STUDENT NAME) -->
+<section class="bg-surface-dark rounded-xl p-8 space-y-6">
+
+<h3 class="text-2xl font-bold">Weekly Report</h3>
+
+<div class="grid md:grid-cols-2 gap-6">
+  <div>
+    <label class="text-xs uppercase text-[#96c5a9]">Attendance</label>
+    <div id="attendance" class="mt-2 p-4 bg-background-dark rounded-xl"></div>
+  </div>
+  <div>
+    <label class="text-xs uppercase text-[#96c5a9]">Focus Skill</label>
+    <div id="focusSkill" class="mt-2 p-4 bg-background-dark rounded-xl"></div>
+  </div>
+</div>
+
+<div>
+  <label class="text-xs uppercase text-[#96c5a9]">Task Description</label>
+  <div id="tasks" class="mt-2 p-4 bg-background-dark rounded-xl whitespace-pre-line"></div>
+</div>
+
+<div class="grid md:grid-cols-2 gap-6">
+  <div>
+    <label class="text-xs uppercase text-[#96c5a9]">Skill Rating</label>
+    <div id="rating" class="mt-2 p-4 bg-background-dark rounded-xl"></div>
+  </div>
+  <div>
+    <label class="text-xs uppercase text-[#96c5a9]">Stress Level</label>
+    <div id="stress" class="mt-2 p-4 bg-background-dark rounded-xl"></div>
+  </div>
+</div>
+
+<div>
+  <label class="text-xs uppercase text-[#96c5a9]">Self Evaluation</label>
+  <div id="selfEval" class="mt-2 p-4 bg-background-dark rounded-xl"></div>
+</div>
+
+<div>
+  <label class="text-xs uppercase text-[#96c5a9]">Challenges</label>
+  <div id="challenges" class="mt-2 p-4 bg-background-dark rounded-xl"></div>
+</div>
+
+<div>
+  <label class="text-xs uppercase text-[#96c5a9]">Priorities Next Week</label>
+  <div id="priorities" class="mt-2 p-4 bg-background-dark rounded-xl"></div>
+</div>
+
+</section>
+
+</main>
+<script>
+const students = [
+  {
+    name: "Aarav Patel",
+    submitted: true,
+    attendance: 95,      // INTEGER
+    focusSkill: "Frontend Development",
+    tasks: "Built dashboard UI\nImproved responsiveness",
+    rating: 8,           // INTEGER
+    stress: 2,           // INTEGER
+    selfEval: "Good progress",
+    challenges: "Time management",
+    priorities: "Charts integration"
+  },
+  { 
+    name: "Neha Sharma", 
+    submitted: false 
+  },
+  {
+    name: "Daniel Wong",
+    submitted: true,
+    attendance: 100,     // INTEGER
+    focusSkill: "Backend APIs",
+    tasks: "Auth system\nDB optimization",
+    rating: 9,           // INTEGER
+    stress: 3,           // INTEGER
+    selfEval: "Very productive",
+    challenges: "Deployment",
+    priorities: "API documentation"
+  }
+];
+
+let index = 0;
+
+function updateStats() {
+  const submitted = students.filter(s => s.submitted).length;
+  submittedPercent.innerText =
+    Math.round((submitted / students.length) * 100) + "%";
+  notSubmitted.innerText = students.length - submitted;
+}
+
+function renderStudent() {
+  const s = students[index];
+  studentName.innerText = s.name;
+
+  if (!s.submitted) {
+    document.querySelectorAll(
+      "#attendance,#focusSkill,#tasks,#rating,#stress,#selfEval,#challenges,#priorities"
+    ).forEach(el => el.innerText = "❌ Report Not Submitted");
+    return;
+  }
+
+  // DISPLAY FORMAT (integers → UI)
+  attendance.innerText = `${s.attendance}%`;
+  focusSkill.innerText = s.focusSkill;
+  tasks.innerText = s.tasks;
+  rating.innerText = `${s.rating} / 10`;
+  stress.innerText = `${s.stress} / 5`;
+  selfEval.innerText = s.selfEval;
+  challenges.innerText = s.challenges;
+  priorities.innerText = s.priorities;
+}
+
+function nextStudent() {
+  index = (index + 1) % students.length;
+  renderStudent();
+}
+
+function prevStudent() {
+  index = (index - 1 + students.length) % students.length;
+  renderStudent();
+}
+
+updateStats();
+renderStudent();
+</script>
+
+</body>
+</html>
