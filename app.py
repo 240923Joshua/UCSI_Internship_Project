@@ -1470,6 +1470,63 @@ def intern_report_history():
         internship=internship
     )
 
+@app.route("/avatar/chat", methods=["POST"])
+def avatar_chat():
+    if "user_id" not in session:
+        return jsonify({"reply": "Unauthorized"}), 401
+    data = request.json
+    user_id = session["user_id"]   # 🔒 SOURCE OF TRUTH
+    internship_id = data.get("internship_id")
+    user_message = data.get("message")
+
+    db = get_db()
+
+    # Fetch internship domain
+    internship = db.execute(
+        "SELECT domain FROM internship WHERE internship_id = ?",
+        (internship_id,)
+    ).fetchone()
+
+    if not internship:
+        synthesize_speech("Invalid internship.", output_file="static/audio/response.wav")
+        return jsonify({"reply": "Invalid internship."}), 400
+
+    domain = internship["domain"]
+
+    # Fetch attendance
+    attendance_percentage = calculate_attendance_percentage(
+        db, user_id, internship_id
+    )
+
+    # Fetch ML result
+    ml_result = db.execute(
+        "SELECT predicted_score, risk_level FROM ml_results WHERE user_id = ? AND internship_id = ?",
+        (user_id, internship_id)
+    ).fetchone()
+
+    if attendance_percentage is None or not ml_result:
+        synthesize_speech("I need more performance data before I can guide you properly.", output_file="static/audio/response.wav")
+        return jsonify({
+            "reply": "I need more performance data before I can guide you properly."
+        })
+    # Build prompt
+    prompt = build_avatar_prompt(
+        attendance_percentage,
+        ml_result["predicted_score"],
+        ml_result["risk_level"],
+        domain,
+        user_message,
+        memory=get_last_message(user_id, internship_id)
+    )
+
+    # Generate response
+    reply = generate_response(prompt)
+
+    # Store last message in memory
+    synthesize_speech(reply, output_file="static/audio/response.wav")
+    set_last_message(user_id, internship_id, reply, user_message)
+    return jsonify({"reply": reply})
+
 @app.route("/intern/avatar", methods=["GET", "POST"])
 def avatar_page():
     if "user_id" not in session or session.get("role") != "intern":
