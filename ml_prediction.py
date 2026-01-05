@@ -1,57 +1,65 @@
 import sqlite3
 import pandas as pd
 import numpy as np
+from sklearn.linear_model import Ridge
 
 DB_PATH = r"C:\Users\PROBOOK\Downloads\internship (4).db"
-
-MIN_WEEKLY_SCORES = 2
+MIN_WEEKLY_SCORES = 3
 
 conn = sqlite3.connect(DB_PATH)
 
 
 def predict(user_id, internship_id):
 
-    weekly_df = pd.read_sql("""
+    df = pd.read_sql("""
         SELECT week_number, attendance_percentage, skill_rating
         FROM weekly_reports
         WHERE user_id = ? AND internship_id = ?
         ORDER BY week_number
     """, conn, params=(user_id, internship_id))
 
-    if len(weekly_df) < MIN_WEEKLY_SCORES:
+    if len(df) < MIN_WEEKLY_SCORES:
         return None
 
-    # Ensure numeric
-    weekly_df["attendance_percentage"] = pd.to_numeric(
-        weekly_df["attendance_percentage"], errors="coerce"
-    )
-    weekly_df["skill_rating"] = pd.to_numeric(
-        weekly_df["skill_rating"], errors="coerce"
-    )
+    df = df.apply(pd.to_numeric, errors="coerce")
+    df.dropna(inplace=True)
 
-    weekly_df.dropna(inplace=True)
-
-    if len(weekly_df) < MIN_WEEKLY_SCORES:
+    if len(df) < MIN_WEEKLY_SCORES:
         return None
 
-    # 🔹 SCALE skill rating from 1–10 → 0–100
-    scores = weekly_df["skill_rating"].values * 10
-    attendance = weekly_df["attendance_percentage"].values / 100
+    # Scale skill rating to 0–100
+    df["skill_scaled"] = df["skill_rating"] * 10
 
-    # ---- TREND CALCULATION ----
-    deltas = np.diff(scores)
-    avg_delta = np.mean(deltas) * 0.6  # dampened trend
+    # ------------------ TARGET: DELTA ------------------
+    df["delta_skill"] = df["skill_scaled"].diff()
+    df.dropna(inplace=True)
 
-    last_score = scores[-1]
-    avg_attendance = np.mean(attendance)
+    if len(df) < 2:
+        return None
 
-    # Predict next score
-    predicted_score = last_score + avg_delta
+    # ------------------ FEATURES ------------------
+    X = df[["week_number", "attendance_percentage"]]
+    y = df["delta_skill"]
 
-    # Attendance impact
-    predicted_score *= avg_attendance
+    # ------------------ TRAIN MODEL ------------------
+    model = Ridge(alpha=1.0)
+    model.fit(X, y)
 
-    # 🔒 FINAL CLAMP (ABSOLUTE SAFETY)
+    # ------------------ PREDICT NEXT WEEK DELTA ------------------
+    last = df.iloc[-1]
+
+    X_next = np.array([[
+        last["week_number"] + 1,
+        df["attendance_percentage"].mean()
+    ]])
+
+    predicted_delta = model.predict(X_next)[0]
+
+    # ------------------ FINAL SCORE ------------------
+    last_score = df["skill_scaled"].iloc[-1]
+    predicted_score = last_score + predicted_delta
+
+    # Clamp strictly
     predicted_score = np.clip(predicted_score, 0, 100)
 
     return round(float(predicted_score), 2)
@@ -85,7 +93,7 @@ def set_predict(user_id, internship_id):
     return predicted_score
 
 
-# Example usage
+# ------------------ TEST ------------------
 result = set_predict(100001, 3)
 print("Predicted Score:", result)
 
