@@ -171,7 +171,7 @@
         </div>
       </div>
             <a
-              href="{{ url_for('supervisor_view_intern', intern_id=top_intern['user_id']) }}"
+              href="{{ url_for('supervisor_view_intern', intern_id=top_intern['user_id'], internship_id=top_intern.internship_id) }}"
             >
 
       <button class="mt-6 w-full py-2 rounded-full bg-primary text-[#122017] font-bold">

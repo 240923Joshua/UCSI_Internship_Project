@@ -2,7 +2,7 @@ import csv,io,os
 from flask import Flask,render_template, request, redirect, url_for, session, jsonify, flash,make_response,abort
 from db import get_db, calculate_attendance_percentage
 from hasher import hash_password, verify_password
-from llm import generate_response, build_avatar_prompt, synthesize_speech
+# from llm import generate_response, build_avatar_prompt, synthesize_speech
 from memory import get_last_message, set_last_message
 from datetime import date, datetime, timedelta
 from werkzeug.utils import secure_filename
@@ -495,7 +495,7 @@ def supervisor_dashboard():
     SELECT
         ud.user_id,
         ud.first_name || ' ' || ud.last_name AS intern_name,
-        i.domain, ud.avatar_url,
+        i.domain, ud.avatar_url, i.internship_id,
         COUNT(wr.report_id) AS report_count
     FROM weekly_reports wr
     JOIN internship i ON i.internship_id = wr.internship_id
@@ -698,8 +698,8 @@ def supervisor_interns():
     return render_template('supervisor/supervisorInterns.html',supervisor_details=supervisor_details,interns=interns,domains=domains,
     supervisor_weeklyReportRedirect=supervisor_weeklyReportRedirect)
 
-@app.route("/supervisor/intern/<int:intern_id>")
-def supervisor_view_intern(intern_id):
+@app.route("/supervisor/intern/<int:intern_id>/<int:internship_id>")
+def supervisor_view_intern(intern_id,internship_id):
     if "user_id" not in session or session.get("role") != "supervisor":
         return redirect(url_for("login"))
 
@@ -770,7 +770,8 @@ def supervisor_view_intern(intern_id):
         JOIN user_details ud ON ud.user_id = i.user_id
         WHERE i.user_id = ?
           AND i.supervisor_id = ?
-    """, (intern_id, supervisor_id))
+          AND i.internship_id = ?
+    """, (intern_id, supervisor_id,internship_id))
 
     intern = cursor.fetchone()
 
@@ -2053,4 +2054,4 @@ def avatar_page():
     )
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=True, use_reloader=True)
