@@ -516,9 +516,25 @@ def supervisor_dashboard():
     """, (supervisor_id,)).fetchone()[0]
 
     supervisor_details = db.execute("""
-    SELECT * from user_details
-    WHERE user_id = ?
+        SELECT
+            ud.user_id,
+            ud.first_name,
+            ud.last_name,
+            ud.email,
+            ud.phone_number,
+            ud.avatar_url,
+
+            sd.employee_id,
+            sd.designation,
+            sd.department,
+            sd.organization,
+            sd.experience_years
+        FROM user_details ud
+        LEFT JOIN supervisor_details sd
+            ON ud.user_id = sd.user_id
+        WHERE ud.user_id = ?
     """, (supervisor_id,)).fetchone()
+
     return render_template("supervisor/supervisorDashboard.html", interns=interns, total_interns=total_interns,
     supervisor_details=supervisor_details,submitted_reports=submitted_reports,pending_reviews=pending_reviews,
     recent_reports=recent_reports,active_internships=active_internships,top_intern=top_intern,
@@ -676,8 +692,23 @@ def supervisor_interns():
     interns = db.execute(query, params).fetchall()
 
     supervisor_details = db.execute("""
-    SELECT * FROM user_details
-    WHERE user_id = ?
+        SELECT
+            ud.user_id,
+            ud.first_name,
+            ud.last_name,
+            ud.email,
+            ud.phone_number,
+            ud.avatar_url,
+
+            sd.employee_id,
+            sd.designation,
+            sd.department,
+            sd.organization,
+            sd.experience_years
+        FROM user_details ud
+        LEFT JOIN supervisor_details sd
+            ON ud.user_id = sd.user_id
+        WHERE ud.user_id = ?
     """, (supervisor_id,)).fetchone()
 
     domains = db.execute("""
@@ -953,9 +984,24 @@ def supervisor_weeklyreports(internship_id):
                 next_week = candidate_next
 
     supervisor_details = db.execute("""
-    SELECT * FROM user_details
-    WHERE user_id = ?
-    """,(supervisor_id,)).fetchone()  
+        SELECT
+            ud.user_id,
+            ud.first_name,
+            ud.last_name,
+            ud.email,
+            ud.phone_number,
+            ud.avatar_url,
+
+            sd.employee_id,
+            sd.designation,
+            sd.department,
+            sd.organization,
+            sd.experience_years
+        FROM user_details ud
+        LEFT JOIN supervisor_details sd
+            ON ud.user_id = sd.user_id
+        WHERE ud.user_id = ?
+    """, (supervisor_id,)).fetchone()
     return render_template("supervisor/supervisorWeeklyReports.html",supervisor_details=supervisor_details,report=reports, submitted_percent=submitted_percent,
     reports_not_submitted=reports_not_submitted,prev_week=prev_week,next_week=next_week,internship_id=internship_id)
 
@@ -1025,8 +1071,33 @@ def supervisor_profile():
 
     overview["experience_years"] = supervisor_details["experience_years"] or 0
 
+    password_updated = db.execute(
+        """
+        SELECT password_updated_at
+        FROM users
+        WHERE user_id = ?
+        """,
+        (supervisor_id,)
+    ).fetchone()["password_updated_at"]
+
+    password_updated = (
+        datetime.strptime(password_updated, "%Y-%m-%d").date()
+        if password_updated else None
+    )
+    today = date.today()
+    days_ago = (today - password_updated).days if password_updated else None
+
+    if days_ago is None:
+        label = "Not available"
+    elif days_ago < 30:
+        label = "Less than a month ago"
+    elif days_ago < 365:
+        label = f"{days_ago // 30} month(s) ago"
+    else:
+        label = f"{days_ago // 365} year(s) ago"
+
     return render_template("supervisor/supervisorProfile.html",supervisor_details=supervisor_details,today=today.strftime("%d %b %Y"),
-    overview=overview)
+    overview=overview,label=label)
 
 @app.route("/supervisor/profile/edit", methods=["GET", "POST"])
 def edit_supervisor_profile():
