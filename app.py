@@ -91,6 +91,40 @@ def intern_dashboard():
     user_id = session["user_id"]
     domain=""
     db = get_db()
+
+    today = date.today().isoformat()
+
+    # 1️⃣ Get ALL active internships for this intern
+    internships = db.execute("""
+        SELECT internship_id
+        FROM internship
+        WHERE user_id = ?
+        AND date(start_date) <= date('now')
+        AND date(end_date) >= date('now')
+    """, (user_id,)).fetchall()
+
+    # 2️⃣ Loop through each active internship
+    for internship in internships:
+        internship_id = internship["internship_id"]
+
+        # Check if attendance already marked today
+        already_marked = db.execute("""
+            SELECT 1
+            FROM attendance
+            WHERE user_id = ?
+            AND internship_id = ?
+            AND date = ?
+        """, (user_id, internship_id, today)).fetchone()
+
+        # 3️⃣ Auto-mark Present if not exists
+        if not already_marked:
+            db.execute("""
+                INSERT INTO attendance (user_id, internship_id, date, status)
+                VALUES (?, ?, ?, 'Present')
+            """, (user_id, internship_id, today))
+
+    db.commit()
+
     cursor = db.execute("SELECT * FROM internship WHERE user_id = ?", (user_id,))
     internships = cursor.fetchall()
     for i in internships:
@@ -349,6 +383,11 @@ def weekly_report(internship_id, week):
     WHERE user_id = ? AND internship_id = ? AND week_number = ?
     """,(user_id, internship_id, week)).fetchone()
 
+    week_start = start_date + timedelta(days=(week - 1) * 7)
+    week_end = week_start + timedelta(days=6)
+
+    can_submit = today >= week_end
+
     return render_template(
     "intern/weeklyReport.html",
     internships=all_internships,
@@ -365,7 +404,9 @@ def weekly_report(internship_id, week):
     existing_report=existing_report,
     reportPeriod=reportPeriod,
     attendance_percentage=attendance_percentage,
-    skills=skills
+    skills=skills,
+    can_submit=can_submit,
+    week_end=week_end
 )
 
 @app.route("/intern/weekly-report/redirect/<int:internship_id>")
@@ -830,6 +871,7 @@ def supervisor_weeklyreports(internship_id):
                 wr.report_id,
                 wr.week_number,
                 wr.task_description,
+                wr.attendance_percentage,
                 wr.focus_skill,
                 wr.skill_rating,
                 wr.stress_level,
@@ -861,6 +903,7 @@ def supervisor_weeklyreports(internship_id):
                 wr.report_id,
                 wr.week_number,
                 wr.task_description,
+                wr.attendance_percentage,
                 wr.focus_skill,
                 wr.skill_rating,
                 wr.stress_level,

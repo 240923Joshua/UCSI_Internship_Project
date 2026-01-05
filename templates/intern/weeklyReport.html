@@ -373,6 +373,7 @@ placeholder="Paste external link (GitHub, Figma, etc.)" value="{{ existing_repor
 </div>
 </div>
 </div>
+<div class="mt-6 flex flex-col gap-2">
 <div class="flex items-center justify-between pt-4 mt-2 border-t border-[#e6e8eb] dark:border-[#366348]">
 <button type="submit" name="action" 
 class="text-[#637588] dark:text-[#96c5a9] font-medium hover:text-[#111418] dark:hover:text-white transition-colors px-4 py-2" 
@@ -400,14 +401,26 @@ Save as Draft
     <span>{{ "Update Report" if existing_report else "Submit Weekly Report" }}</span>
 </button>
 {% else %}
-<button type="submit" name="action" id="submitBtn" value="submit" disabled
-class="ml-auto flex items-center gap-2 px-8 py-3 rounded-full bg-primary text-[#122017] font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:scale-[1.02] active:scale-95 transition-all" 
->
-<span>{{"Update Report" if existing_report else "Submit Weekly Report"}}</span>
+<button
+  type="submit"
+  {% if not can_submit %}disabled{% endif %}
+  class="ml-auto px-6 py-2 rounded-full font-bold
+         {% if can_submit %}
+           bg-primary text-[#122017] hover:bg-primary/90
+         {% else %}
+           bg-gray-400 cursor-not-allowed opacity-60
+         {% endif %}">
+  Submit Report
 </button>
 <span class="material-symbols-outlined text-[20px]">send</span>
 {% endif %}
-
+</div>
+{% if not can_submit %}
+  <p class="mt-100 text-sm text-yellow-400">
+    You can submit this report after
+    <strong>{{ week_end.strftime('%d %b %Y') }}</strong>
+  </p>
+{% endif %}
 </div>
 </form>
 {% if existing_report.status == 'reviewed' %}
