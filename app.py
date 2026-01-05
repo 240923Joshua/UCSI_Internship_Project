@@ -1282,7 +1282,7 @@ def change_password():
         flash("Password updated successfully", "success")
         return redirect(url_for("profile"))
 
-    return render_template("change_password.html")
+    return render_template("changePassword.html")
 
 @app.route("/intern/export-report/<int:internship_id>")
 def export_report(internship_id):
