@@ -1,0 +1,229 @@
+<!DOCTYPE html> 
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>InternFlow | Performance Dashboard</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        primary: "#38e07b",
+        attendance: "#38e07b",
+        rating: "#FFB800",
+        stress: "#FF4C4C",
+        "background-dark": "#122017",
+        "surface-dark": "#1a2c22"
+      },
+      fontFamily: { display: ["Spline Sans", "sans-serif"] }
+    }
+  }
+}
+</script>
+</head>
+
+<body class="bg-background-dark text-white h-screen overflow-hidden flex">
+
+<!-- SIDEBAR -->
+<aside class="w-80 h-full flex flex-col bg-[#0e1a12] border-r border-[#1e3a29] shrink-0">
+  <div class="p-6 flex items-center gap-3">
+    <div class="size-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+      <span class="material-symbols-outlined text-3xl">hub</span>
+    </div>
+    <div>
+      <h1 class="font-bold text-xl">InternFlow</h1>
+      <p class="text-xs text-[#637588] dark:text-[#96c5a9]">Supervisor Portal</p>
+    </div>
+  </div>
+  <nav class="flex-1 px-4 space-y-1">
+    <p class="px-4 py-2 text-xs font-bold text-[#637588] uppercase">Menu</p>
+
+    <a href="{{ url_for('supervisor_dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">dashboard</span>
+      Dashboard
+    </a>
+
+    <a href="{{ url_for('supervisor_interns') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">groups</span>
+      Interns
+    </a>
+    <a href=" " class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] font-semibold">
+      <span class="material-symbols-outlined">analytics</span>
+      Performance
+    </a>
+    <a href="{{ url_for('supervisor_profile') }}"class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">person</span>
+      Profile
+    </a>
+  </nav>
+  <div class="p-4 border-t border-[#e6e8eb] dark:border-[#1e3a29]">
+    <div class="flex items-center gap-3 p-3 rounded-xl bg-[#f0f2f4] dark:bg-[#1a2c22]">
+      <div class="size-10 rounded-full bg-cover bg-center" style="background-image:url('{{ supervisor_details.avatar_url }}');"></div>
+      <div class="flex-1">
+        <p class="text-sm font-bold">{{ supervisor_details.first_name }} {{ supervisor_details.last_name }}</p>
+        <p class="text-xs text-[#637588] dark:text-[#96c5a9]">Company Mentor</p>
+      </div>
+      <a href="{{ url_for('logout') }}">
+      <button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+      <span class="material-symbols-outlined text-[20px]">logout</span>
+      </button>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="flex-1 overflow-y-auto p-8 space-y-8">
+
+  <!-- HEADER + DOMAIN SELECT -->
+  <div class="flex justify-between items-center">
+    <div>
+      <h2 class="text-4xl font-black">Performance Dashboard</h2>
+      <p class="text-[#96c5a9]">View statistics by domain</p>
+    </div>
+    <div>
+      <select id="domainSelect" class="px-4 py-2 rounded-xl bg-surface-dark text-white font-medium">
+        <option value="All">All Domains</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- SCORE GRAPHS -->
+  <div class="grid md:grid-cols-3 gap-6">
+    <div class="bg-surface-dark p-6 rounded-xl">
+      <canvas id="scoreChart" height="100"></canvas>
+    </div>
+    <div class="bg-surface-dark p-6 rounded-xl">
+      <canvas id="ratingChart" height="100"></canvas>
+    </div>
+    <div class="bg-surface-dark p-6 rounded-xl">
+      <canvas id="stressChart" height="100"></canvas>
+    </div>
+  </div>
+
+  <!-- ATTENDANCE GRAPH + WEEK DROPDOWN -->
+  <div class="bg-surface-dark p-6 rounded-xl">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-bold">Weekly Attendance</h3>
+      <select id="weekSelect" class="px-4 py-2 rounded-xl bg-surface-dark text-white font-medium"></select>
+    </div>
+    <canvas id="attendanceChart" height="150"></canvas>
+  </div>
+
+</main>
+
+<script>
+// DATA
+let domains = {};
+
+fetch("/supervisor/performance/data")
+  .then(res => res.json())
+  .then(data => {
+    domains = data;
+
+    // Populate domain dropdown
+    domainSelect.innerHTML = "";
+    Object.keys(domains).forEach(d => {
+      const opt = document.createElement("option");
+      opt.value = d;
+      opt.innerText = d;
+      domainSelect.appendChild(opt);
+    });
+
+    renderDomain(Object.keys(domains)[0]);
+  });
+
+
+// DOM ELEMENTS
+const domainSelect = document.getElementById("domainSelect");
+const weekSelect = document.getElementById("weekSelect");
+
+// POPULATE DOMAIN DROPDOWN
+Object.keys(domains).forEach(d=>{
+  const opt=document.createElement("option");
+  opt.value=d; opt.innerText=d;
+  domainSelect.appendChild(opt);
+});
+
+// INITIAL WEEK INDEX
+let weekIndex = 0;
+
+// CHARTS
+const scoreChart = new Chart(document.getElementById("scoreChart"), {
+  type: 'bar',
+  data: { labels:['Score'], datasets:[{ label:'Score', data:[0], backgroundColor:'#38e07b' }] },
+  options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,max:100}} }
+});
+const ratingChart = new Chart(document.getElementById("ratingChart"), {
+  type:'bar',
+  data:{labels:['Rating'], datasets:[{label:'Rating',data:[0], backgroundColor:'#FFB800'}]},
+  options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,max:10}}}
+});
+const stressChart = new Chart(document.getElementById("stressChart"), {
+  type:'bar',
+  data:{labels:['Stress'], datasets:[{label:'Stress',data:[0], backgroundColor:'#FF4C4C'}]},
+  options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,max:5}}}
+});
+const attendanceChart = new Chart(document.getElementById("attendanceChart"), {
+  type:'line',
+  data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets:[{label:'Attendance',data:[0,0,0,0,0,0,0], borderColor:'#38e07b', tension:0.3, fill:false}]},
+  options:{responsive:true, scales:{y:{beginAtZero:true,max:100}}}
+});
+
+// RENDER FUNCTION
+function renderDomain(domain){
+  const data = domains[domain];
+  if (!data) return;
+
+  scoreChart.data.datasets[0].data = [data.scores.score || 0];
+  ratingChart.data.datasets[0].data = [data.scores.rating || 0];
+  stressChart.data.datasets[0].data = [data.scores.stress || 0];
+
+  scoreChart.update();
+  ratingChart.update();
+  stressChart.update();
+
+  weekSelect.innerHTML = "";
+  data.weekly.forEach((_, i) => {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.innerText = "Week " + (i + 1);
+    weekSelect.appendChild(opt);
+  });
+
+  attendanceChart.data.datasets[0].data =
+    data.weekly[weekIndex] || [0,0,0,0,0,0,0];
+
+  attendanceChart.update();
+}
+
+
+// WEEK SELECT CHANGE
+weekSelect.addEventListener('change',()=>{
+  weekIndex = parseInt(weekSelect.value);
+  renderDomain(domainSelect.value);
+});
+
+// DOMAIN SELECT CHANGE
+domainSelect.addEventListener('change',()=>{
+  weekIndex=0;
+  renderDomain(domainSelect.value);
+});
+
+// INITIAL RENDER
+renderDomain(domainSelect.value);
+</script>
+
+</body>
+</html>

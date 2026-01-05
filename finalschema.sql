@@ -96,6 +96,18 @@ CREATE TABLE IF NOT EXISTS skills (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table internship.supervisor_details
+CREATE TABLE IF NOT EXISTS supervisor_details (
+    user_id INTEGER PRIMARY KEY,
+    employee_id TEXT,
+    designation TEXT,
+    department TEXT,
+    organization TEXT, experience_years INTEGER,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table internship.user_details
 CREATE TABLE IF NOT EXISTS user_details (
     user_id INTEGER PRIMARY KEY,
