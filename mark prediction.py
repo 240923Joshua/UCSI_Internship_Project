@@ -1,3 +1,4 @@
+#do not use this one
 import sqlite3
 import pandas as pd
 from sklearn.linear_model import LinearRegression
@@ -58,3 +59,4 @@ def set_predict(user_id, internship_id):
         cursor.execute(insert_query, (user_id, internship_id, predicted_mark, risk_level ))
         conn.commit()
 set_predict(1,1)
+
