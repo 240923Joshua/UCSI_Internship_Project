@@ -1890,6 +1890,7 @@ def view_all_skills():
         return redirect(url_for("login"))
 
     user_id = session["user_id"]
+    previous_page = request.referrer
     internship_id = request.args.get("internship_id", type=int)
 
     if not internship_id:
@@ -1900,7 +1901,8 @@ def view_all_skills():
 
     return render_template(
         "intern/internSkills.html",
-        skill_stats=skill_stats
+        skill_stats=skill_stats,
+        previous_page=previous_page
     )
 
 @app.route("/intern/reports")
@@ -1910,7 +1912,7 @@ def intern_report_history():
 
     user_id = session["user_id"]
     internship_id = request.args.get("internship_id")
-
+    previous_page = request.referrer
     if not internship_id:
         return redirect(url_for("internship_progress"))
 
@@ -1940,7 +1942,8 @@ def intern_report_history():
     return render_template(
         "intern/reportHistory.html",
         reports=reports,
-        internship=internship
+        internship=internship,
+        previous_page=previous_page
     )
 
 @app.route("/avatar/chat", methods=["POST"])
