@@ -187,7 +187,7 @@
 <header class="flex flex-wrap justify-between items-end gap-4">
 <div>
 <h2 class="text-4xl font-black tracking-tight text-[#111418] dark:text-white mb-2">Weekly Report</h2>
-<p class="text-[#637588] dark:text-[#96c5a9] text-lg font-medium">Submit your progress for Week <span class="font-semibold">{{ current_week }}</span></p>
+<p class="text-[#637588] dark:text-[#96c5a9] text-lg font-medium">Submit your progress for Week <span class="font-semibold">{{ week }}</span></p>
 </div>
 <div class="flex items-center gap-3">
 <div class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-[#264532] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white font-medium shadow-sm">
@@ -203,7 +203,7 @@
   action="{{ url_for(
     'weekly_report',
     internship_id=selected_internship_id,
-    week=current_week
+    week=week
   ) }}"
 >
 <div class="relative">

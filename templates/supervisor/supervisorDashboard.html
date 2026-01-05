@@ -206,10 +206,12 @@
           </div>
 
           <span class="text-primary text-sm flex items-center gap-1">
-          <a
+          <!-- <a
             href="{{ url_for('supervisor_view_report', report_id=report.report_id) }}"
             class="text-primary text-sm font-medium hover:underline"
-          >
+          > -->
+          <a href="{{ url_for('supervisor_weeklyreports', internship_id=report.internship_id,week=report.week_number) }}"
+          class="text-primary text-sm font-medium hover:underline">
             View →
           </a>
         </div>

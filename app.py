@@ -1,4 +1,4 @@
-import csv,io,os
+import csv,io,os,ml_prediction
 from flask import Flask,render_template, request, redirect, url_for, session, jsonify, flash,make_response,abort
 from db import get_db, calculate_attendance_percentage
 from hasher import hash_password, verify_password
@@ -81,6 +81,7 @@ def myProgressPercentage(db, user_id):
     """, (user_id,)).fetchone()["total_score"]
     if internships == 0:
         return 0
+    ml_results = ml_results if ml_results else 0
     return round(ml_results / internships,2)
 
 
@@ -238,7 +239,6 @@ def weekly_report(internship_id, week):
     
     start_date = datetime.strptime(internship["start_date"], "%Y-%m-%d").date()
     today = date.today()
-
     current_week = ((today - start_date).days // 7) + 1
     current_week = min(current_week, internship["weeks"])
 
@@ -265,7 +265,6 @@ def weekly_report(internship_id, week):
 
     week_start = start_date + timedelta(days=(week - 1) * 7)
     week_end = week_start + timedelta(days=6)
-
     reportPeriod = f"{week_start.strftime('%d %b %Y')} - {week_end.strftime('%d %b %Y')}"
     cursor = db.execute("""
         SELECT
@@ -285,7 +284,7 @@ def weekly_report(internship_id, week):
     )
     if request.method == "POST":
         status = "draft" if action == "draft" else "submitted"
-
+        
         if existing:
             if existing["status"] == "submitted" or existing["status"] == 'reviewed':
                 flash("Weekly report already submitted for this week.", "warning")
@@ -321,7 +320,6 @@ def weekly_report(internship_id, week):
                 internship_id,
                 week
             ))
-
         else:
             # INSERT brand new
             db.execute("""
@@ -346,13 +344,13 @@ def weekly_report(internship_id, week):
                 request.form.get("evidence_link"),
                 status
             ))
-
         db.commit()
 
         if status == "draft":
             flash("Draft saved successfully.", "info")
         else:
             flash("Weekly report submitted successfully!", "success")
+            ml_prediction.set_predict(user_id, internship_id,db)
             return redirect(url_for("internship_progress", internship_id=internship_id))
     skills = db.execute("""
     SELECT s.name
@@ -406,7 +404,8 @@ def weekly_report(internship_id, week):
     attendance_percentage=attendance_percentage,
     skills=skills,
     can_submit=can_submit,
-    week_end=week_end
+    week_end=week_end,
+    week=week
 )
 
 @app.route("/intern/weekly-report/redirect/<int:internship_id>")
@@ -473,6 +472,7 @@ def supervisor_dashboard():
         ud.first_name || ' ' || ud.last_name AS intern_name,
         wr.week_number,
         i.domain,
+        i.internship_id,
         wr.submitted_at
     FROM weekly_reports wr
     JOIN internship i ON i.internship_id = wr.internship_id
@@ -1108,9 +1108,9 @@ def edit_supervisor_profile():
     db = get_db()
 
     db.execute("""
-INSERT OR IGNORE INTO supervisor_details (user_id)
-VALUES (?)
-""", (supervisor_id,))
+    INSERT OR IGNORE INTO supervisor_details (user_id)
+    VALUES (?)
+    """, (supervisor_id,))
 
     if request.method == "POST":
         # 1️⃣ Update user_details
@@ -2069,10 +2069,31 @@ def avatar_chat():
     # Generate response
     reply = generate_response(prompt)
 
-    # Store last message in memory
-    synthesize_speech(reply, output_file="static/audio/response.wav")
+    # -----------------------------
+    # USER-SPECIFIC AUDIO PATH
+    # -----------------------------
+    BASE_AUDIO_DIR = os.path.join("static", "audio")
+    user_audio_dir = os.path.join(BASE_AUDIO_DIR, f"user_{user_id}")
+
+    os.makedirs(user_audio_dir, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = "response.wav"
+    output_file = os.path.join(user_audio_dir, filename)
+
+    # synthesize audio
+    synthesize_speech(reply, output_file=output_file)
+
+    # -----------------------------
+    # STORE MESSAGE + RESPOND
+    # -----------------------------
     set_last_message(user_id, internship_id, reply, user_message)
-    return jsonify({"reply": reply})
+
+    return jsonify({
+        "reply": reply,
+        "audio_url": f"/static/audio/user_{user_id}/{filename}"
+    })
+
 
 @app.route("/intern/avatar", methods=["GET", "POST"])
 def avatar_page():

@@ -372,7 +372,7 @@ chatForm.addEventListener("submit", async (e) => {
 
 
         // 🔊 Play TTS
-        const audio = new Audio("/static/audio/response.wav?ts=" + Date.now());
+        const audio = new Audio(`${data.audio_url}?ts=` + Date.now());
 
         audio.onplay = () => {
             console.log("AUDIO PLAYING");
