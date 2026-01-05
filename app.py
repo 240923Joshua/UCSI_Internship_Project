@@ -1059,6 +1059,100 @@ VALUES (?)
         supervisor=supervisor
     )
 
+@app.route("/supervisor/performance")
+def supervisor_performance():
+    if "user_id" not in session and session['role'] != 'supervisor':
+        return redirect(url_for('login'))
+    supervisor_id = session['user_id']
+    db=get_db()
+    supervisor_details = db.execute("""
+        SELECT
+            ud.user_id,
+            ud.first_name,
+            ud.last_name,
+            ud.email,
+            ud.phone_number,
+            ud.avatar_url,
+
+            sd.employee_id,
+            sd.designation,
+            sd.department,
+            sd.organization,
+            sd.experience_years
+        FROM user_details ud
+        LEFT JOIN supervisor_details sd
+            ON ud.user_id = sd.user_id
+        WHERE ud.user_id = ?
+    """, (supervisor_id,)).fetchone()
+    return render_template("supervisor/supervisorPerformance.html",supervisor_details=supervisor_details)
+
+@app.route("/supervisor/performance/data")
+def supervisor_performance_data():
+    if "user_id" not in session or session.get("role") != "supervisor":
+        return jsonify({}), 401
+
+    supervisor_id = session["user_id"]
+    db = get_db()
+
+    # -----------------------------
+    # 1️⃣ DOMAIN-LEVEL METRICS
+    # -----------------------------
+    domain_rows = db.execute("""
+        SELECT
+            i.domain,
+
+            ROUND(AVG(wr.attendance_percentage), 1) AS avg_attendance,
+            ROUND(AVG(wr.skill_rating), 1) AS avg_rating,
+            ROUND(AVG(wr.stress_level), 1) AS avg_stress
+
+        FROM weekly_reports wr
+        JOIN internship i
+            ON i.internship_id = wr.internship_id
+
+        WHERE i.supervisor_id = ?
+          AND wr.status IN ('submitted', 'reviewed')
+
+        GROUP BY i.domain
+    """, (supervisor_id,)).fetchall()
+
+    domains = {}
+
+    for row in domain_rows:
+        domains[row["domain"]] = {
+            "scores": {
+                "attendance": row["avg_attendance"] or 0,
+                "rating": row["avg_rating"] or 0,
+                "stress": row["avg_stress"] or 0
+            },
+            "weekly": []
+        }
+
+    # -----------------------------
+    # 2️⃣ WEEKLY ATTENDANCE TREND
+    # -----------------------------
+    weekly_rows = db.execute("""
+        SELECT
+            i.domain,
+            wr.week_number,
+            ROUND(AVG(wr.attendance_percentage), 0) AS attendance
+        FROM weekly_reports wr
+        JOIN internship i
+            ON i.internship_id = wr.internship_id
+        WHERE i.supervisor_id = ?
+          AND wr.status IN ('submitted', 'reviewed')
+        GROUP BY i.domain, wr.week_number
+        ORDER BY wr.week_number
+    """, (supervisor_id,)).fetchall()
+
+    for row in weekly_rows:
+        domains[row["domain"]]["weekly"].append(
+            row["attendance"]
+        )
+
+    return jsonify(domains)
+
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
