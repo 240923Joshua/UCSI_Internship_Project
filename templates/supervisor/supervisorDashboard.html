@@ -58,12 +58,12 @@
   <nav class="flex-1 px-4 space-y-1">
     <p class="px-4 py-2 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase">Menu</p>
 
-    <a href="sup_dash.html" class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] font-semibold">
+    <a href="{{ url_for('supervisor_dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] font-semibold">
       <span class="material-symbols-outlined">dashboard</span>
       Dashboard
     </a>
 
-    <a href="sup_intern.html" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+    <a href="{{ url_for('supervisor_interns') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
       <span class="material-symbols-outlined">groups</span>
       Interns
     </a>
@@ -92,9 +92,11 @@
         <p class="text-sm font-bold">{{ supervisor_details.first_name }} {{ supervisor_details.last_name }}</p>
         <p class="text-xs text-[#637588] dark:text-[#96c5a9]">Company Mentor</p>
       </div>
-      <a href="{{ url_for('logout' )}}">
-      <span class="material-symbols-outlined">logout</span>
-     </a>
+<a href="{{ url_for('logout') }}">
+<button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+</button>
+</a>
     </div>
   </div>
 

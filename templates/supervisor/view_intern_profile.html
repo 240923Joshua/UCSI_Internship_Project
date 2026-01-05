@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-[#0f2418] rounded-2xl p-8 text-white">
+    <div class="flex items-center gap-6">
+        <img src="{{ intern.avatar_url or url_for('static', filename='avatars/default.png') }}"
+             class="w-24 h-24 rounded-full object-cover border-4 border-green-400">
+
+        <div>
+            <h1 class="text-3xl font-bold">{{ intern.intern_name }}</h1>
+            <p class="text-green-300">{{ intern.email }}</p>
+            <p class="text-sm text-gray-300">
+                {{ intern.domain }} · {{ intern.start_date }} → {{ intern.end_date }}
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-6 mt-8">
+        <div class="bg-[#132f21] p-4 rounded-xl">
+            <p class="text-sm text-gray-400">Attendance</p>
+            <p class="text-2xl font-bold text-green-400">{{ intern.attendance_percent }}%</p>
+        </div>
+
+        <div class="bg-[#132f21] p-4 rounded-xl">
+            <p class="text-sm text-gray-400">Reports</p>
+            <p class="text-2xl font-bold text-green-400">{{ intern.reports_percent }}%</p>
+        </div>
+
+        <div class="bg-[#132f21] p-4 rounded-xl">
+            <p class="text-sm text-gray-400">Skill Progress</p>
+            <p class="text-2xl font-bold text-green-400">
+                {{ intern.skill_percent or "Not rated" }}
+            </p>
+        </div>
+    </div>
+
+    <a href="{{ url_for('supervisor_interns') }}"
+       class="inline-block mt-8 text-green-400 hover:underline">
+        ← Back to Interns
+    </a>
+</div>
+{% endblock %}

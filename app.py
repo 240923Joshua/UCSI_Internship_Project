@@ -516,6 +516,216 @@ def supervisor_view_report(report_id):
         report=report
     )
 
+@app.route("/supervisor/interns")
+def supervisor_interns():
+    if "user_id" not in session or session.get('role') != "supervisor":
+        return redirect(url_for('login'))
+    supervisor_id = session['user_id']
+    db = get_db()
+
+    search = request.args.get("q", "").strip()
+    domain = request.args.get("domain", "").strip()
+
+    query = """
+        SELECT
+            i.user_id AS user_id,
+            ud.first_name || ' ' || ud.last_name AS intern_name,
+            ud.email,
+            ud.avatar_url,
+            i.domain,
+            i.start_date,
+            i.end_date,
+
+            -- Attendance %
+            MIN(
+            ROUND(
+                (
+                SELECT COUNT(*)
+                FROM attendance a
+                WHERE a.user_id = i.user_id
+                    AND a.status = 'Present'
+                ) * 100.0 /
+                NULLIF(
+                (SELECT COUNT(*) FROM attendance a2 WHERE a2.user_id = i.user_id),
+                0
+                ),
+                0
+            ),
+            100
+            ) AS attendance_percent,
+
+            -- Reports submitted %
+            MIN(
+            ROUND(
+                (
+                SELECT COUNT(*)
+                FROM weekly_reports wr
+                WHERE wr.internship_id = i.internship_id
+                    AND wr.status = 'submitted'
+                ) * 100.0 /
+                NULLIF(
+                (JULIANDAY('now') - JULIANDAY(i.start_date)) / 7,
+                0
+                ),
+                0
+            ),
+            100
+            ) AS reports_percent,
+
+            -- Skill rating avg %
+            MIN(
+            ROUND(
+                (
+                SELECT AVG(
+                    CASE
+                    WHEN wr2.skill_rating > 5 THEN 5
+                    ELSE wr2.skill_rating
+                    END
+                )
+                FROM weekly_reports wr2
+                WHERE wr2.internship_id = i.internship_id
+                    AND wr2.skill_rating IS NOT NULL
+                ) * 20,
+                0
+            ),
+            100
+            ) AS skill_percent,
+
+            CASE
+                WHEN i.start_date <= DATE('now') AND i.end_date >= DATE('now')
+                THEN 'Active'
+                ELSE 'Completed'
+            END AS status
+
+        FROM internship i
+        JOIN user_details ud ON ud.user_id = i.user_id
+        WHERE i.supervisor_id = ?
+        """
+
+    params = [supervisor_id]
+    if search:
+        query += """
+            AND (
+                ud.first_name LIKE ?
+                OR ud.last_name LIKE ?
+                OR (ud.first_name || ' ' || ud.last_name) LIKE ?
+                OR (ud.last_name || ' ' || ud.first_name) LIKE ?
+                OR ud.email LIKE ?
+                OR i.domain LIKE ?
+            )
+        """
+        like = f"%{search}%"
+        params.extend([like, like, like, like, like, like])
+
+    if domain:
+        query += " AND i.domain = ?"
+        params.append(domain)
+
+    query += " ORDER BY ud.first_name"
+
+    interns = db.execute(query, params).fetchall()
+
+    supervisor_details = db.execute("""
+    SELECT * FROM user_details
+    WHERE user_id = ?
+    """, (supervisor_id,)).fetchone()
+
+    domains = db.execute("""
+        SELECT DISTINCT domain
+        FROM internship
+        WHERE supervisor_id = ?
+    """, (supervisor_id,)).fetchall()
+
+    domains = [d["domain"] for d in domains]
+
+
+    return render_template('supervisor/supervisorInterns.html',supervisor_details=supervisor_details,interns=interns,domains=domains)
+
+@app.route("/supervisor/intern/<int:intern_id>")
+def supervisor_view_intern(intern_id):
+    if "user_id" not in session or session.get("role") != "supervisor":
+        return redirect(url_for("login"))
+
+    supervisor_id = session["user_id"]
+    db = get_db()
+    
+    cursor = db.execute("""
+        SELECT
+            ud.first_name || ' ' || ud.last_name AS intern_name,
+            ud.email,
+            i.domain,
+            i.start_date,
+            i.end_date,
+            ud.avatar_url as avatar_url,
+
+            -- Attendance %
+            ROUND(
+              (
+                SELECT COUNT(*)
+                FROM attendance a
+                WHERE a.user_id = i.user_id
+                  AND a.status = 'Present'
+              ) * 100.0 /
+              NULLIF(
+                (SELECT COUNT(*) FROM attendance a2 WHERE a2.user_id = i.user_id),
+                0
+              ),
+              0
+            ) AS attendance_percent,
+
+            -- Reports %
+            MIN(
+              ROUND(
+                (
+                  SELECT COUNT(*)
+                  FROM weekly_reports wr
+                  WHERE wr.internship_id = i.internship_id
+                    AND wr.status = 'submitted'
+                ) * 100.0 /
+                NULLIF(
+                  (JULIANDAY('now') - JULIANDAY(i.start_date)) / 7,
+                  0
+                ),
+                0
+              ),
+              100
+            ) AS reports_percent,
+
+            -- Skill %
+            MIN(
+              ROUND(
+                (
+                  SELECT AVG(
+                    CASE
+                      WHEN wr2.skill_rating > 5 THEN 5
+                      ELSE wr2.skill_rating
+                    END
+                  )
+                  FROM weekly_reports wr2
+                  WHERE wr2.internship_id = i.internship_id
+                ) * 20,
+                0
+              ),
+              100
+            ) AS skill_percent
+
+        FROM internship i
+        JOIN user_details ud ON ud.user_id = i.user_id
+        WHERE i.user_id = ?
+          AND i.supervisor_id = ?
+    """, (intern_id, supervisor_id))
+
+    intern = cursor.fetchone()
+
+    if intern is None:
+        return redirect(url_for("supervisor_interns"))
+
+    return render_template(
+        "supervisor/view_intern_profile.html",
+        intern=intern
+    )
+
+
 
 # @app.route("/supervisor/<int:supervisor_id>/dashboard")
 # def supervisor_dashboard(supervisor_id):
