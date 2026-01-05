@@ -96,17 +96,6 @@ CREATE TABLE IF NOT EXISTS skills (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table internship.supervisors
-CREATE TABLE IF NOT EXISTS supervisors (
-    supervisor_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    title TEXT,
-    department TEXT,
-    email TEXT
-);
-
--- Data exporting was unselected.
-
 -- Dumping structure for table internship.user_details
 CREATE TABLE IF NOT EXISTS user_details (
     user_id INTEGER PRIMARY KEY,
@@ -160,7 +149,7 @@ CREATE TABLE IF NOT EXISTS weekly_reports (
 
     evidence_link TEXT,
 
-    submitted_at TEXT DEFAULT CURRENT_TIMESTAMP, status TEXT DEFAULT 'submitted',
+    submitted_at TEXT DEFAULT CURRENT_TIMESTAMP, status TEXT DEFAULT 'submitted', supervisor_feedback TEXT, reviewed_at TEXT,
 
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (internship_id) REFERENCES internship(internship_id) ON DELETE CASCADE,
