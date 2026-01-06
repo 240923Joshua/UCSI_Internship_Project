@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <title>Supervisor Performance | InternFlow</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#38e07b",
+            bgDark: "#122017",
+            surfaceDark: "#1a2c22",
+            borderDark: "#264532"
+          },
+          fontFamily: {
+            display: ["Spline Sans", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-bgDark text-white h-screen flex overflow-hidden">
+
+<!-- SIDEBAR -->
+<aside class="w-80 bg-[#0e1a12] border-r border-[#1e3a29] flex flex-col">
+  <div class="p-6 flex items-center gap-3">
+    <div class="size-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+      <span class="material-symbols-outlined text-3xl">hub</span>
+    </div>
+    <div>
+      <h1 class="font-bold text-xl">InternFlow</h1>
+      <p class="text-xs text-[#96c5a9]">Supervisor Portal</p>
+    </div>
+  </div>
+
+  <nav class="flex-1 px-4 space-y-1">
+    <a href="{{ url_for('supervisor_dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-white/5">
+      <span class="material-symbols-outlined">dashboard</span> Dashboard
+    </a>
+
+    <a href="{{ url_for('supervisor_interns') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-white/5">
+      <span class="material-symbols-outlined">groups</span> Interns
+    </a>
+
+    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] font-semibold">
+      <span class="material-symbols-outlined">analytics</span> Performance
+    </a>
+
+    <a href="{{ url_for('supervisor_profile') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-white/5">
+      <span class="material-symbols-outlined">person</span> Profile
+    </a>
+  </nav>
+
+  <div class="p-4 border-t border-[#e6e8eb] dark:border-[#1e3a29]">
+    <div class="flex items-center gap-3 p-3 rounded-xl bg-[#f0f2f4] dark:bg-[#1a2c22]">
+      <div class="size-10 rounded-full bg-cover bg-center" style="background-image:url('{{ supervisor_details.avatar_url }}');"></div>
+      <div class="flex-1">
+        <p class="text-sm font-bold">{{ supervisor_details.first_name }} {{ supervisor_details.last_name }}</p>
+        <p class="text-xs text-[#637588] dark:text-[#96c5a9]">{{ supervisor_details.designation }}</p>
+      </div>
+      <a href="{{ url_for('logout') }}">
+      <button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+      <span class="material-symbols-outlined text-[20px]">logout</span>
+      </button>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="flex-1 p-8 overflow-y-auto space-y-8">
+
+  <!-- HEADER -->
+  <header class="flex justify-between items-center">
+    <div>
+      <h1 class="text-4xl font-extrabold">Performance Overview</h1>
+      <p class="text-[#96c5a9] mt-1">Domain-wise intern performance insights</p>
+    </div>
+
+    <select id="domainSelect"
+            class="px-4 py-2 rounded-xl bg-surfaceDark border border-borderDark text-white">
+    </select>
+  </header>
+
+  <!-- METRIC CARDS -->
+  <section class="grid md:grid-cols-3 gap-6">
+    <div class="bg-surfaceDark rounded-2xl p-6 text-center">
+      <p class="text-4xl font-black" id="attendanceValue">0%</p>
+      <p class="text-sm text-[#96c5a9] mt-1">Avg Attendance</p>
+    </div>
+
+    <div class="bg-surfaceDark rounded-2xl p-6 text-center">
+      <p class="text-4xl font-black" id="ratingValue">0</p>
+      <p class="text-sm text-[#96c5a9] mt-1">Avg Skill Rating</p>
+    </div>
+
+    <div class="bg-surfaceDark rounded-2xl p-6 text-center">
+      <p class="text-4xl font-black" id="stressValue">0</p>
+      <p class="text-sm text-[#96c5a9] mt-1">Avg Stress Level</p>
+    </div>
+  </section>
+
+  <!-- WEEKLY ATTENDANCE -->
+  <section class="bg-surfaceDark rounded-2xl p-6">
+    <h2 class="text-xl font-bold mb-4">Weekly Attendance Trend</h2>
+    <canvas id="attendanceChart" height="120"></canvas>
+  </section>
+
+</main>
+
+<script>
+let domains = {};
+let currentDomain = null;
+
+const domainSelect = document.getElementById("domainSelect");
+const attendanceValue = document.getElementById("attendanceValue");
+const ratingValue = document.getElementById("ratingValue");
+const stressValue = document.getElementById("stressValue");
+
+const attendanceChart = new Chart(
+  document.getElementById("attendanceChart"),
+  {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [{
+        label: "Attendance %",
+        data: [],
+        borderColor: "#38e07b",
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true, max: 100 } }
+    }
+  }
+);
+
+fetch("/supervisor/performance/data")
+  .then(res => res.json())
+  .then(data => {
+    domains = data;
+    domainSelect.innerHTML = "";
+
+    Object.keys(domains).forEach(domain => {
+      const opt = document.createElement("option");
+      opt.value = domain;
+      opt.innerText = domain;
+      domainSelect.appendChild(opt);
+    });
+
+    currentDomain = Object.keys(domains)[0];
+    renderDomain(currentDomain);
+  });
+
+domainSelect.addEventListener("change", () => {
+  currentDomain = domainSelect.value;
+  renderDomain(currentDomain);
+});
+
+function renderDomain(domain) {
+  const d = domains[domain];
+  if (!d) return;
+
+  attendanceValue.innerText = (d.scores.attendance || 0) + "%";
+  ratingValue.innerText = d.scores.rating || 0;
+  stressValue.innerText = d.scores.stress || 0;
+
+  attendanceChart.data.labels =
+    d.weekly.map((_, i) => "Week " + (i + 1));
+
+  attendanceChart.data.datasets[0].data =
+    d.weekly;
+
+  attendanceChart.update();
+}
+</script>
+
+</body>
+</html>

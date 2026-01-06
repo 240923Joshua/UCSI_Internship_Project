@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>InternFlow AI Avatar Guidance</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+            extend: {
+                colors: {
+                "primary": "#38e07b",
+                "background-light": "#f6f8f7",
+                "background-dark": "#122017",
+                "surface-dark": "#1a2c22", 
+                },
+                fontFamily: {
+                "display": ["Spline Sans", "sans-serif"]
+                },
+                borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+            },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Spline Sans', sans-serif;
+        }::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #122017; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #264532; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38e07b; 
+        }.chat-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background: #264532;
+            border-radius: 3px;
+        }
+        .flash-message.show {
+          transform: translateX(0);
+          opacity: 1;
+        }
+
+        .flash-message.hide {
+          transform: translateX(20px);
+          opacity: 0;
+        }
+    </style>
+</head>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+    const messages = document.querySelectorAll(".flash-message");
+
+    messages.forEach((msg, index) => {
+      // Stagger slide-in
+      setTimeout(() => {
+        msg.classList.add("show");
+      }, index * 120);
+
+      // Auto-dismiss after 3s
+      setTimeout(() => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+
+        setTimeout(() => {
+          msg.remove();
+        }, 500);
+      }, 3000 + index * 120);
+
+      // Click to dismiss early
+      msg.addEventListener("click", () => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+
+        setTimeout(() => {
+          msg.remove();
+        }, 300);
+      });
+    });
+  });
+</script>
+<body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white h-screen flex selection:bg-primary selection:text-background-dark">
+<div id="flash-container"
+     class="fixed top-6 right-6 z-50 space-y-3 pointer-events-none">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div
+        class="flash-message pointer-events-auto
+               px-5 py-4 rounded-xl shadow-lg text-sm font-medium
+               transform translate-x-20 opacity-0
+               transition-all duration-500 ease-out
+               {% if category == 'success' %}bg-green-600 text-white{% endif %}
+               {% if category == 'warning' %}bg-yellow-400 text-black{% endif %}
+               {% if category == 'error' %}bg-red-600 text-white{% endif %}"
+      >
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+</div>
+<aside class="w-80 h-full flex flex-col bg-background-light dark:bg-[#0e1a12] border-r border-[#e6e8eb] dark:border-[#1e3a29] shrink-0 transition-all duration-300 relative z-20 hidden md:flex">
+<div class="p-6 pb-2">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center size-10 rounded-xl bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-3xl">hub</span>
+</div>
+<div>
+<h1 class="font-display font-bold text-xl tracking-tight text-[#111418] dark:text-white">InternFlow</h1>
+<p class="text-xs font-medium text-[#637588] dark:text-[#96c5a9]">Student Portal</p>
+</div>
+</div>
+</div>
+<div class="px-4 py-4">
+<div class="bg-gradient-to-br from-primary/20 to-transparent p-4 rounded-xl border border-primary/20 relative overflow-hidden group cursor-pointer transition-all hover:border-primary/40">
+<div class="absolute top-0 right-0 p-2 opacity-50">
+<span class="material-symbols-outlined text-primary animate-pulse">emergency_home</span>
+</div>
+<p class="text-xs uppercase tracking-wider font-bold text-primary mb-1">AI Status: Online</p>
+<p class="text-sm font-medium text-[#111418] dark:text-white/90 leading-tight">Your mentor is analyzing your recent communication patterns.</p>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+<p class="px-4 py-2 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Menu</p>
+<a href="{{ url_for('intern_dashboard') }}"class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a href="{{ url_for('internship_progress') }}"class="group flex items-center justify-between px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">pie_chart</span>
+<span class="font-medium">My Progress</span>
+</div>
+<svg class="w-5 h-5" viewBox="0 0 36 36">
+  <path
+    d="M18 2.0845
+       a 15.9155 15.9155 0 0 1 0 31.831
+       a 15.9155 15.9155 0 0 1 0 -31.831"
+    fill="none"
+    stroke="#264532"
+    stroke-width="3"
+  />
+  <path
+    d="M18 2.0845
+       a 15.9155 15.9155 0 0 1 0 31.831
+       a 15.9155 15.9155 0 0 1 0 -31.831"
+    fill="none"
+    stroke="#38e07b"
+    stroke-width="3"
+    stroke-dasharray="{{ progress_percentage }}, 100"
+    stroke-linecap="round"
+  />
+</svg>
+</a>
+<a href="{{ url_for('weekly_report', internship_id=weeklyReportRedirect.internship_id, week=weeklyReportRedirect.week) }}   "class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">description</span>
+<span class="font-medium">Weekly Reports</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]" href="#">
+<span class="material-symbols-outlined fill-1 animate-pulse">smart_toy</span>
+<span class="font-medium">AI Avatar Guidance</span>
+</a>
+<p class="px-4 py-2 mt-4 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Account</p>
+<a href="{{ url_for('profile') }}"class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">person</span>
+<span class="font-medium">Profile</span>
+</a>
+</div>
+<div class="p-4 border-t border-[#e6e8eb] dark:border-[#1e3a29]">
+<div class="flex items-center justify-between gap-3 p-2 rounded-xl bg-[#f0f2f4] dark:bg-[#1a2c22]">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover bg-center" style="background-image:url('{{ user_details.avatar_url }}');"></div>
+<div class="flex flex-col">
+<span class="text-sm font-bold text-[#111418] dark:text-white">{{ user_details.first_name }} {{user_details.last_name}}</span>
+<span class="text-xs text-[#637588] dark:text-[#96c5a9]">Intern • {{ domain }}</span>
+</div>
+</div>
+<a href="/logout"
+   class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418]
+          dark:hover:text-white p-2 rounded-full hover:bg-black/5
+          dark:hover:bg-white/10 transition-colors inline-flex">
+  <span class="material-symbols-outlined text-[20px]">logout</span>
+</a>
+</button>
+</div>
+</div>
+</aside>
+<main class="flex-1 h-full overflow-hidden bg-background-light dark:bg-background-dark relative flex flex-col">
+<div class="shrink-0 p-6 pb-2 md:p-8 md:pb-4 border-b border-[#e6e8eb] dark:border-[#1e3a29] bg-background-light dark:bg-background-dark z-10">
+<header class="flex flex-wrap justify-between items-end gap-4 max-w-[1600px] mx-auto w-full">
+<div>
+<h2 class="text-3xl font-black tracking-tight text-[#111418] dark:text-white mb-1">AI Avatar Guidance</h2>
+<p class="text-[#637588] dark:text-[#96c5a9] text-base font-medium">Chat with your personalized AI mentor to review progress and get career advice.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="p-2 text-[#637588] dark:text-[#96c5a9] hover:text-primary transition-colors md:hidden">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</header>
+</div>
+<div class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+<div class="max-w-[1600px] mx-auto w-full h-full">
+<div class="grid grid-cols-1 gap-6 h-full min-h-[600px]">
+<section class="flex flex-col bg-white dark:bg-[#1a2c22] rounded-3xl shadow-sm border border-[#e6e8eb] dark:border-[#366348] relative overflow-hidden h-full min-h-[500px]">
+<div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none"></div>
+<div class="p-6 border-b border-[#e6e8eb] dark:border-[#366348] flex items-center justify-between relative z-10 bg-white/50 dark:bg-[#1a2c22]/50 backdrop-blur-sm">
+<div class="mt-3 w-64">
+  <label class="block text-xs font-bold text-[#637588] dark:text-[#96c5a9] mb-1">
+    Internship Context
+  </label>
+  <select
+    id="internshipSelect"
+    class="w-full rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-sm text-[#111418] dark:text-white px-3 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+  >
+    {% for internship in internships[::-1] %}
+      <option value="{{ internship.internship_id }}">
+        {{ internship.title }} — {{ internship.domain }}
+      </option>
+    {% endfor %}
+  </select>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative size-14 rounded-2xl bg-gradient-to-br from-primary to-[#264532] flex items-center justify-center shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-3xl text-white">smart_toy</span>
+<div class="absolute -bottom-1 -right-1 size-4 bg-green-500 border-2 border-white dark:border-[#1a2c22] rounded-full" title="Online"></div>
+</div>
+<div>
+<h3 class="font-bold text-lg text-[#111418] dark:text-white">Guidance Bot</h3>
+<p class="text-xs text-[#637588] dark:text-[#96c5a9]">Always here to help you grow.</p>
+</div>
+</div>
+</div>
+<!-- Avatar Display -->
+<!-- Avatar Display -->
+<div class="flex justify-center mb-4">
+<div
+  id="avatarContainer"
+  class="w-56 h-56 md:w-64 md:h-64 rounded-full overflow-hidden bg-black border border-[#366348] shadow-lg animate-[pulse_4s_ease-in-out_infinite]"
+>
+
+    <!-- Idle avatar -->
+    <img
+      id="avatarIdle"
+      src="/static/ai/idle.png"
+      alt="AI Avatar Idle"
+      class="w-full h-full object-cover"
+    />
+
+    <!-- Thinking animation (hidden for now) -->
+    <video
+      id="avatarThinking"
+      src="/static/ai/thinking.mp4"
+      class="hidden w-full h-full object-cover"
+      autoplay
+      loop
+      muted
+      playsinline
+    ></video>
+
+    <!-- Speaking animation (hidden for now, future step) -->
+    <video
+      id="avatarSpeaking"
+      src="/static/ai/speaking.mp4"
+      class="hidden w-full h-full object-cover"
+      autoplay
+      loop
+      muted
+      playsinline
+    ></video>
+  </div>
+</div>
+<div class="flex-1 overflow-y-auto px-6 pt-2 pb-6 space-y-4 chat-scroll relative z-10">
+
+<div class="flex justify-center">
+<span class="text-xs font-bold text-[#637588]/60 dark:text-[#96c5a9]/60 uppercase tracking-wider bg-[#f6f8f7] dark:bg-[#122017] px-3 py-1 rounded-full">Today, 10:23 AM</span>
+</div>
+<div class="text-center text-sm text-[#637588] dark:text-[#96c5a9] italic">
+  Start a conversation with your AI mentor.
+</div>
+</div>
+<div class="p-4 border-t border-[#e6e8eb] dark:border-[#366348] bg-white dark:bg-[#1a2c22] relative z-20">
+<form class="relative flex items-end gap-2">
+<div class="relative flex-1">
+<textarea class="w-full pl-4 pr-12 py-3 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none h-[50px] max-h-[120px] leading-relaxed" placeholder="Ask the Avatar about your progress or for help..." rows="1"></textarea>
+<button class="absolute right-2 bottom-2 p-1.5 text-[#637588] dark:text-[#96c5a9] hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">mic</span>
+</button>
+</div>
+<button id="sendBtn" class="p-3 bg-primary text-[#122017] rounded-xl hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20 shrink-0" type="submit">
+<span class="material-symbols-outlined filled">send</span>
+</button>
+</form>
+</div>
+</section>
+</div>
+</div>
+</div>
+</main>
+<script>
+const chatForm = document.querySelector("form");
+const textarea = chatForm.querySelector("textarea");
+const chatContainer = document.querySelector(".chat-scroll");
+const internshipSelect = document.getElementById("internshipSelect");
+const sendBtn = document.getElementById("sendBtn");
+const avatarIdle = document.getElementById("avatarIdle");
+const avatarThinking = document.getElementById("avatarThinking");
+const avatarSpeaking = document.getElementById("avatarSpeaking");
+const avatarContainer = document.getElementById("avatarContainer");
+
+
+let thinkingBubble = null;
+
+textarea.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+        if (sendBtn.disabled) return; // 🚫 block while thinking
+        e.preventDefault();
+        chatForm.requestSubmit();
+    }
+});
+
+chatForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const message = textarea.value.trim();
+    if (!message) return;
+
+    const internshipId = internshipSelect.value;
+
+    appendMessage(message, "user");
+    setAvatarState("thinking");
+    textarea.value = "";
+
+    // Disable send while waiting
+    sendBtn.disabled = true;
+    sendBtn.classList.add("opacity-50", "cursor-not-allowed");
+
+    showThinking();
+
+    try {
+        const res = await fetch("/avatar/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                internship_id: internshipId,
+                message: message
+            })
+        });
+
+        const data = await res.json();
+
+        removeThinking();
+        clearChatExceptDate();
+        appendMessage(data.reply, "bot");
+
+
+        // 🔊 Play TTS
+        const audio = new Audio(`${data.audio_url}?ts=` + Date.now());
+
+        audio.onplay = () => {
+            console.log("AUDIO PLAYING");
+            setAvatarState("speaking");
+        };
+
+        audio.onended = () => {
+            console.log("AUDIO ENDED");
+            setAvatarState("idle");
+        };
+
+        audio.play();
+
+
+    } catch (err) {
+        removeThinking();
+        appendMessage("Something went wrong. Please try again.", "bot");
+    } finally {
+        sendBtn.disabled = false;
+        sendBtn.classList.remove("opacity-50", "cursor-not-allowed");
+    }
+});
+
+function clearChatExceptDate() {
+    chatContainer.innerHTML = `
+        <div class="flex justify-center">
+          <span class="text-xs font-bold text-[#637588]/60 dark:text-[#96c5a9]/60 uppercase tracking-wider bg-[#f6f8f7] dark:bg-[#122017] px-3 py-1 rounded-full">
+            Today
+          </span>
+        </div>
+    `;
+}
+
+function setAvatarState(state) {
+    // Hide all avatar visuals
+    avatarIdle.classList.add("hidden");
+    avatarThinking.classList.add("hidden");
+    avatarSpeaking.classList.add("hidden");
+
+    // Remove idle pulse by default
+    avatarContainer.classList.remove("animate-[pulse_4s_ease-in-out_infinite]");
+
+    if (state === "idle") {
+        avatarIdle.classList.remove("hidden");
+        avatarContainer.classList.add("animate-[pulse_4s_ease-in-out_infinite]");
+    }
+
+    if (state === "thinking") {
+        avatarThinking.classList.remove("hidden");
+    }
+
+    if (state === "speaking") {
+        avatarSpeaking.classList.remove("hidden");
+    }
+}
+
+
+
+function showThinking() {
+    thinkingBubble = document.createElement("div");
+    thinkingBubble.className = "flex items-start gap-4 max-w-[85%]";
+    thinkingBubble.innerHTML = `
+        <div class="p-4 rounded-2xl bg-[#f0f2f4] dark:bg-[#264532] text-[#637588] dark:text-[#96c5a9] italic text-sm">
+            Avatar is thinking…
+        </div>
+    `;
+    chatContainer.appendChild(thinkingBubble);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function removeThinking() {
+    if (thinkingBubble) {
+        chatContainer.removeChild(thinkingBubble);
+        thinkingBubble = null;
+    }
+}
+
+function appendMessage(text, sender) {
+    const wrapper = document.createElement("div");
+    wrapper.className =
+        "flex items-start justify-center max-w-full";
+
+
+    wrapper.innerHTML = `
+            <div class="max-w-xl text-center p-5 rounded-2xl bg-[#1f3a2a] text-[#dff3e7] shadow-md">
+            <p class="text-sm leading-relaxed">${text}</p>
+        </div>
+    `;
+
+    chatContainer.appendChild(wrapper);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+</script>
+
+
+</body></html>

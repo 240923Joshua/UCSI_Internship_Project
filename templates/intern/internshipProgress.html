@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Internship Progress</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+            extend: {
+                colors: {
+                "primary": "#38e07b",
+                "background-light": "#f6f8f7",
+                "background-dark": "#122017",
+                "surface-dark": "#1a2c22", 
+                },
+                fontFamily: {
+                "display": ["Spline Sans", "sans-serif"]
+                },
+                borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+            },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Spline Sans', sans-serif;
+        }::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #122017; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #264532; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38e07b; 
+        }
+          .flash-message.show {
+          transform: translateX(0);
+          opacity: 1;
+        }
+
+        .flash-message.hide {
+          transform: translateX(20px);
+          opacity: 0;
+        }
+    </style>
+</head>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const messages = document.querySelectorAll(".flash-message");
+
+    messages.forEach((msg, index) => {
+      // Stagger slide-in
+      setTimeout(() => {
+        msg.classList.add("show");
+      }, index * 120);
+
+      // Auto-dismiss after 3s
+      setTimeout(() => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+
+        setTimeout(() => {
+          msg.remove();
+        }, 500);
+      }, 3000 + index * 120);
+
+      // Click to dismiss early
+      msg.addEventListener("click", () => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+
+        setTimeout(() => {
+          msg.remove();
+        }, 300);
+      });
+    });
+  });
+</script>
+
+<body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white h-screen overflow-hidden flex selection:bg-primary selection:text-background-dark">
+<div id="flash-container"
+     class="fixed top-6 right-6 z-50 space-y-3 pointer-events-none">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div
+        class="flash-message pointer-events-auto
+               px-5 py-4 rounded-xl shadow-lg text-sm font-medium
+               transform translate-x-20 opacity-0
+               transition-all duration-500 ease-out
+               {% if category == 'success' %}bg-green-600 text-white{% endif %}
+               {% if category == 'warning' %}bg-yellow-400 text-black{% endif %}
+               {% if category == 'error' %}bg-red-600 text-white{% endif %}"
+      >
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+</div>
+<aside class="w-80 h-full flex flex-col bg-background-light dark:bg-[#0e1a12] border-r border-[#e6e8eb] dark:border-[#1e3a29] shrink-0 transition-all duration-300 relative z-20">
+<div class="p-6 pb-2">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center size-10 rounded-xl bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-3xl">hub</span>
+</div>
+<div>
+<h1 class="font-display font-bold text-xl tracking-tight text-[#111418] dark:text-white">InternFlow</h1>
+<p class="text-xs font-medium text-[#637588] dark:text-[#96c5a9]">Student Portal</p>
+</div>
+</div>
+</div>
+<div class="px-4 py-4">
+<div class="bg-gradient-to-br from-primary/20 to-transparent p-4 rounded-xl border border-primary/20 relative overflow-hidden group cursor-pointer transition-all hover:border-primary/40">
+<div class="absolute top-0 right-0 p-2 opacity-50">
+<span class="material-symbols-outlined text-primary animate-pulse">emergency_home</span>
+</div>
+<p class="text-xs uppercase tracking-wider font-bold text-primary mb-1">AI Status: Online</p>
+<p class="text-sm font-medium text-[#111418] dark:text-white/90 leading-tight">Your mentor is ready to review your weekly report.</p>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+<p class="px-4 py-2 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Menu</p>
+<a href= "{{url_for('intern_dashboard', user_id=user_details.user_id)}}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="flex items-center justify-between px-4 py-3 rounded-full bg-primary text-[#122017] shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined fill-1">pie_chart</span>
+<span class="font-medium">My Progress</span>
+</div>
+<svg class="w-5 h-5" viewBox="0 0 36 36">
+  <path
+    d="M18 2.0845
+       a 15.9155 15.9155 0 0 1 0 31.831
+       a 15.9155 15.9155 0 0 1 0 -31.831"
+    fill="none"
+    stroke="rgba(255,255,255,0.35)"
+    stroke-width="3"
+  />
+  <path
+    d="M18 2.0845
+       a 15.9155 15.9155 0 0 1 0 31.831
+       a 15.9155 15.9155 0 0 1 0 -31.831"
+    fill="none"
+    stroke="#052E16"
+    stroke-width="3"
+    stroke-dasharray="{{ progress_percentage }}, 100"
+    stroke-linecap="round"
+  />
+</svg>
+</a>
+<a href="{{url_for('weekly_report', internship_id=weeklyReportRedirect.internship_id, week=weeklyReportRedirect.week) }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">description</span>
+<span class="font-medium">Weekly Reports</span>
+</a>
+<a href="{{ url_for('avatar_page') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors animate-pulse">smart_toy</span>
+<span class="font-medium">AI Avatar Guidance</span>
+</a>
+<p class="px-4 py-2 mt-4 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Account</p>
+<a href="{{url_for('profile')}}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">person</span>
+<span class="font-medium">Profile</span>
+</a>
+</div>
+<div class="p-4 border-t border-[#e6e8eb] dark:border-[#1e3a29]">
+<div class="flex items-center justify-between gap-3 p-2 rounded-xl bg-[#f0f2f4] dark:bg-[#1a2c22]">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="Student profile picture" style="background-image: url('{{ user_details.avatar_url }}');"></div>
+<div class="flex flex-col">
+<span class="text-sm font-bold text-[#111418] dark:text-white">{{ user_details.first_name }} {{ user_details.last_name }}</span>
+<span class="text-xs text-[#637588] dark:text-[#96c5a9]">Intern • {{ progress_stats.domain }}</span>
+</div>
+</div>
+<a href="{{ url_for('logout') }}">
+<button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+</button>
+</a>
+</div>
+</div>
+</aside>
+<main class="flex-1 h-full overflow-y-auto bg-background-light dark:bg-background-dark relative">
+<div class="max-w-[1200px] mx-auto p-6 md:p-10 flex flex-col gap-8">
+<header class="flex flex-wrap justify-between items-end gap-4">
+<div>
+<h2 class="text-4xl font-black tracking-tight text-[#111418] dark:text-white mb-2">My Progress</h2>
+<p class="text-[#637588] dark:text-[#96c5a9] text-lg font-medium">Track your performance, attendance, and skill growth.</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-sm">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span>Mentor Status: Active</span>
+</div>
+<button class="flex items-center gap-2 rounded-full bg-white dark:bg-[#264532] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white font-medium hover:bg-[#f0f2f4] dark:hover:bg-[#366348] transition-colors shadow-sm">
+<a href="{{ url_for('export_report', internship_id=selected_internship_id) }}"
+   class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-green-600/20 text-green-400 hover:bg-green-600/30 transition">
+  <span class="material-symbols-outlined text-[20px]">download</span>
+<span>Export Report</span>
+</a>
+</button>
+</div>
+</header>
+<div class="flex justify-end position-relative">
+  <form method="get">
+    <label class="sr-only">Select Internship</label>
+    <select
+      name="internship_id"
+      onchange="this.form.submit()"
+      class="px-4 py-2 rounded-xl bg-white dark:bg-[#264532]
+             border border-[#e6e8eb] dark:border-[#366348]
+             text-[#111418] dark:text-white font-medium"
+    >
+      {% for internship in internships %}
+        <option
+          value="{{ internship.internship_id }}"
+          {% if internship.internship_id == selected_internship_id %}
+            selected
+          {% endif %}
+        >
+          {{ internship.title }} ({{ internship.domain }})
+        </option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+<div class="p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm relative overflow-hidden">
+<div class="relative z-10 flex flex-col h-full justify-between gap-4">
+<div class="flex items-center justify-between">
+<span class="p-2 rounded-lg bg-blue-500/10 text-blue-500 material-symbols-outlined">schedule</span>
+<span class="text-xs font-bold uppercase text-[#637588] dark:text-[#96c5a9] tracking-wide">Attendance</span>
+</div>
+<div>
+<span class="text-3xl font-bold text-[#111418] dark:text-white">{{ progress_stats.attendance_percentage }}%</span>
+<p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-1">{{ progress_stats.present_days }} days present / {{ progress_stats.absent_days }} absent</p>
+</div>
+<div class="w-full bg-[#e6e8eb] dark:bg-[#122017] h-1.5 rounded-full overflow-hidden">
+<div class="bg-blue-500 h-full rounded-full" style="width: 94%"></div>
+</div>
+</div>
+</div>
+<div class="p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm">
+<div class="flex flex-col h-full justify-between gap-4">
+<div class="flex items-center justify-between">
+<span class="p-2 rounded-lg bg-primary/10 text-primary material-symbols-outlined">check_circle</span>
+<span class="text-xs font-bold uppercase text-[#637588] dark:text-[#96c5a9] tracking-wide">Tasks Score</span>
+</div>
+<div>
+<span class="text-3xl font-bold text-[#111418] dark:text-white">{{ ml_results.predicted_score }}/100</span>
+<p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-1">{{ ml_results.recommendation }}</p>
+</div>
+<div class="w-full bg-[#e6e8eb] dark:bg-[#122017] h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: {{ ml_results.predicted_score }}%"></div>
+</div>
+</div>
+</div>
+<div class="p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm">
+  <div class="flex flex-col h-full justify-between gap-4">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <span class="p-2 rounded-lg bg-blue-500/10 text-blue-500 material-symbols-outlined">
+        calendar_today
+      </span>
+      <span class="text-xs font-bold uppercase text-[#637588] dark:text-[#96c5a9] tracking-wide">
+        Current Week
+      </span>
+    </div>
+
+    <!-- Main Value -->
+    <div>
+      <span class="text-3xl font-bold text-[#111418] dark:text-white">
+        Week {{ progress_stats.current_week }}
+      </span>
+      <span class="text-xl text-[#637588] dark:text-[#96c5a9] font-medium">
+        / {{ progress_stats.total_weeks }}
+      </span>
+      <p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-1">
+        Internship timeline
+      </p>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="flex gap-1">
+      {% for i in range(progress_stats.total_weeks) %}
+        <div
+          class="h-1.5 flex-1 rounded-full
+          {% if i < progress_stats.current_week %}
+            bg-blue-500
+          {% else %}
+            bg-[#e6e8eb] dark:bg-[#122017]
+          {% endif %}">
+        </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
+
+<div class="p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm">
+  <div class="flex flex-col h-full justify-between gap-4">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <span class="p-2 rounded-lg bg-purple-500/10 text-purple-500 material-symbols-outlined">
+        article
+      </span>
+      <span class="text-xs font-bold uppercase text-[#637588] dark:text-[#96c5a9] tracking-wide">
+        Reports
+      </span>
+    </div>
+
+    <!-- Main Content -->
+    <div>
+      <span class="text-3xl font-bold text-[#111418] dark:text-white">
+        {{ progress_stats.reports_submitted }}
+      </span>
+      <span class="text-xl text-[#637588] dark:text-[#96c5a9] font-medium">
+        / {{ progress_stats.total_weeks }}
+      </span>
+
+      {% if progress_stats.report_status == "pending" %}
+        <p class="text-sm text-[#d97706] mt-1">
+          Next due in {{ progress_stats.days_until_due }} days
+        </p>
+
+      {% elif progress_stats.report_status == "submitted" %}
+        <p class="text-sm text-green-600 mt-1">
+          Submitted for this week
+        </p>
+      
+      {% elif progress_stats.report_status == "overdue" %}
+      <p class="text-sm text-red-600 font-semibold mt-1">
+        Overdue by {{ progress_stats.days_until_due }} days
+      </p>
+
+      {% else %}
+        <p class="text-sm text-blue-600 mt-1">
+          Internship completed
+        </p>
+      {% endif %}
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="flex gap-1">
+      {% for i in range(progress_stats.total_weeks) %}
+        <div
+          class="h-1.5 flex-1 rounded-full
+          {% if i < progress_stats.reports_submitted %}
+            bg-purple-500
+          {% else %}
+            bg-[#e6e8eb] dark:bg-[#122017]
+          {% endif %}">
+        </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
+<a href="{{ url_for('intern_report_history', internship_id=selected_internship_id) }}"
+   class="block h-full hover:ring-2 hover:ring-red-400 rounded-2xl transition">  
+<div class="h-full p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm">
+  <div class="flex flex-col h-full justify-between gap-4">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <span class="p-2 rounded-lg 
+        {% if progress_stats.outstanding_reports > 0 %}
+          bg-red-500/10 text-red-500
+        {% else %}
+          bg-green-500/10 text-green-500
+        {% endif %}
+        material-symbols-outlined">
+        pending_actions
+      </span>
+      <span class="text-xs font-bold uppercase text-[#637588] dark:text-[#96c5a9] tracking-wide">
+        Outstanding
+      </span>
+    </div>
+
+    <!-- Main Content -->
+    <div>
+      <span class="text-3xl font-bold text-[#111418] dark:text-white">
+        {{ progress_stats.outstanding_reports }}
+      </span>
+      <p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-1">
+        Reports pending
+      </p>
+    </div>
+
+    <!-- Status Message -->
+    {% if progress_stats.outstanding_reports == 0 %}
+      <p class="text-sm text-green-600 font-medium">
+        You're on track
+      </p>
+    {% else %}
+      <p class="text-sm text-red-600 font-medium">
+        Action required
+      </p>
+    {% endif %}
+
+  </div>
+</div>
+</a>
+<div class="col-span-2 p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm">
+  <div class="flex flex-col gap-4">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      {% if progress_stats.performance_trend == "improving" %}
+        <span class="p-2 rounded-lg bg-green-500/10 text-green-500 material-symbols-outlined">
+          trending_up
+        </span>
+      {% elif progress_stats.performance_trend == "declining" %}
+        <span class="p-2 rounded-lg bg-red-500/10 text-red-500 material-symbols-outlined">
+          trending_down
+        </span>
+      {% else %}
+        <span class="p-2 rounded-lg bg-gray-500/10 text-gray-500 material-symbols-outlined">
+          trending_flat
+        </span>
+      {% endif %}
+
+      <span class="text-xs font-bold uppercase text-[#637588] dark:text-[#96c5a9] tracking-wide">
+        Performance Trend
+      </span>
+    </div>
+
+    
+    <!-- Line Graph -->
+    <div class="mt-2">
+      <svg
+  viewBox="0 0 100 100"
+  class="w-full h-28"
+>
+
+  {% set values = progress_stats.skill_trend_normalized %}
+  {% set count = values|length %}
+  {% if count < 2 %}
+      <div class="flex flex-col items-center justify-center h-28 text-[#96c5a9] gap-2">
+        <span class="material-symbols-outlined text-3xl opacity-50">
+          show_chart
+        </span>
+        <span>No reports submitted yet</span>
+      </div>
+  {% else %}
+  {% set step = 100 / (count - 1) %}
+
+  {% set path = [] %}
+  {% for y in values %}
+    {% set x = loop.index0 * step %}
+    {% set yv = 100 - y %}
+    {% if loop.first %}
+      {% set _ = path.append("M " ~ x ~ " " ~ yv) %}
+    {% else %}
+      {% set px = (loop.index0 - 1) * step %}
+      {% set py = 100 - values[loop.index0 - 1] %}
+      {% set cx = (px + x) / 2 %}
+      {% set cy = (py + yv) / 2 %}
+      {% set _ = path.append("Q " ~ px ~ " " ~ py ~ ", " ~ cx ~ " " ~ cy) %}
+    {% endif %}
+  {% endfor %}
+  {% set _ = path.append("T " ~ x ~ " " ~ yv) %}
+  {% endif %}
+
+  <!-- Glow -->
+  <path
+    d="{{ path | join(' ') }}"
+    fill="none"
+    stroke="#22c55e"
+    stroke-width="6"
+    stroke-opacity="0.08"
+    stroke-linecap="round"
+  />
+
+  <!-- Main line -->
+  <path
+    d="{{ path | join(' ') }}"
+    fill="none"
+    stroke="#22c55e"
+    stroke-width="4"
+    stroke-linecap="round"
+  />
+      <path
+  id="trendPath"
+  d="{{ path | join(' ') }}"
+  fill="none"
+  stroke="none"
+  pathLength="1"
+/>
+
+{% set count = progress_stats.skill_trend | length %}
+
+{% for i in range(progress_stats.skill_trend|length) %}
+{% if count >= 2 %}
+  {% for i in range(count) %}
+    <circle r="3" fill="#22c55e">
+      <animateMotion
+        dur="0.001s"
+        fill="freeze"
+        keyPoints="{{ i / (count - 1) }}"
+        keyTimes="0"
+        calcMode="linear"
+        path="{{ path | join(' ') }}"
+      />
+      <title>
+        Week {{ i + 1 }} : Skill {{ progress_stats.skill_trend[i] }}
+      </title>
+    </circle>
+  {% endfor %}
+{% endif %}
+{% endfor %}
+</svg>
+
+    </div>
+
+    <!-- Caption -->
+    <p class="text-xs text-[#637588] dark:text-[#96c5a9]">
+      Skill rating over last {{ progress_stats.skill_trend | length }} reports
+    </p>
+
+  </div>
+</div>
+
+<div class="col-span-1 p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm flex flex-col h-full">
+  <div class="space-y-5">
+  {% for skill in skill_stats[:3] %}
+    <div>
+      <div class="flex justify-between items-center mb-1">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
+          <span class="font-medium">{{ skill.name }}</span>
+        </div>
+        <span class="text-sm text-[#96c5a9]">{{ skill.level }}</span>
+      </div>
+
+      <div class="w-full h-2 rounded-full bg-[#122017]">
+        <div
+          class="h-2 rounded-full bg-yellow-400"
+          style="--w: {{ skill.percentage }}%; width: var(--w);"
+        ></div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+<a
+  href="{{ url_for('view_all_skills', internship_id=selected_internship_id) }}" class="mt-auto block text-center"
+>
+<button class="mt-6 w-full py-2.5 rounded-xl border border-[#e6e8eb] dark:border-[#366348] text-sm font-bold text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white hover:bg-[#f0f2f4] dark:hover:bg-[#264532] transition-colors">
+                        View All Skills
+                    </button>
+</a>
+</div>
+</section>
+
+<section>
+<div class="h-full flex flex-col justify-between p-6 rounded-2xl bg-[#1a2c22] border border-[#366348]">
+{% if outstanding_tasks|length <= 0 %}
+  <div class="text-center py-10 text-[#96c5a9]">
+    <span class="material-symbols-outlined text-6xl mb-4 opacity-50">
+      task_alt
+    </span>
+    <p class="text-lg font-medium">
+      No outstanding tasks! Great job staying on track.
+    </p>
+  </div>
+{% else %}
+
+  <table class="w-full table-fixed border-collapse">
+    
+    <thead>
+      <tr class="text-left text-xs text-[#96c5a9]">
+        <th class="pb-3">TASK NAME</th>
+        <th class="pb-3">DEADLINE</th>
+        <th class="pb-3">PRIORITY</th>
+        <th class="pb-3">STATUS</th>
+        <th class="pb-3">ACTION</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for task in outstanding_tasks[:3] %}
+        <tr class="border-t border-[#366348]">
+
+          <td class="py-4 font-medium">
+            {{ task.task_name }}
+          </td>
+
+          <td class="text-[#96c5a9]">
+            {{ task.deadline.strftime("%b %d, %Y") }}
+          </td>
+
+          <td>
+            {% if task.priority == "HIGH" %}
+              <span class="px-3 py-1 rounded-full bg-red-500/20 text-red-400">HIGH</span>
+            {% elif task.priority == "MEDIUM" %}
+              <span class="px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400">MEDIUM</span>
+            {% else %}
+              <span class="px-3 py-1 rounded-full bg-green-500/20 text-green-400">LOW</span>
+            {% endif %}
+          </td>
+
+          <td class="text-[#96c5a9]">
+            <span class="inline-flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+              Not Started
+            </span>
+          </td>
+
+          <td>
+            <a
+              href="{{ task.action_url }}"
+              class="px-4 py-2 rounded-full border border-green-500 text-green-400 hover:bg-green-500/10 transition"
+            >
+              Start
+            </a>
+          </td>
+
+        </tr>
+      {% endfor %}
+    </tbody>
+
+  </table>
+{% endif %}
+
+</div>
+
+</section>
+</div>
+</main>
+</body>
+</html>

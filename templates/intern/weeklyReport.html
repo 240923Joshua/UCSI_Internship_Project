@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>InternFlow Student Weekly Report</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+            extend: {
+                colors: {
+                "primary": "#38e07b",
+                "background-light": "#f6f8f7",
+                "background-dark": "#122017",
+                "surface-dark": "#1a2c22", 
+                },
+                fontFamily: {
+                "display": ["Spline Sans", "sans-serif"]
+                },
+                borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+            },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Spline Sans', sans-serif;
+        }::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #122017; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #264532; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38e07b; 
+        }
+    </style>
+</head>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const messages = document.querySelectorAll(".flash-message");
+
+    messages.forEach((msg, index) => {
+      // Stagger slide-in
+      setTimeout(() => {
+        msg.classList.add("show");
+      }, index * 120);
+
+      // Auto-dismiss after 3s
+      setTimeout(() => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+
+        setTimeout(() => {
+          msg.remove();
+        }, 500);
+      }, 3000 + index * 120);
+
+      // Click to dismiss early
+      msg.addEventListener("click", () => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+
+        setTimeout(() => {
+          msg.remove();
+        }, 300);
+      });
+    });
+  });
+</script>
+<body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white h-screen overflow-hidden flex selection:bg-primary selection:text-background-dark">
+<div id="flash-container"
+     class="fixed top-6 right-6 z-50 space-y-3 pointer-events-none">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div
+        class="flash-message pointer-events-auto
+               px-5 py-4 rounded-xl shadow-lg text-sm font-medium
+               transform translate-x-20 opacity-0
+               transition-all duration-500 ease-out
+               {% if category == 'success' %}bg-green-600 text-white{% endif %}
+               {% if category == 'warning' %}bg-yellow-400 text-black{% endif %}
+               {% if category == 'error' %}bg-red-600 text-white{% endif %}"
+      >
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+</div>
+<aside class="w-80 h-full flex flex-col bg-background-light dark:bg-[#0e1a12] border-r border-[#e6e8eb] dark:border-[#1e3a29] shrink-0 transition-all duration-300 relative z-20">
+<div class="p-6 pb-2">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center size-10 rounded-xl bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-3xl">hub</span>
+</div>
+<div>
+<h1 class="font-display font-bold text-xl tracking-tight text-[#111418] dark:text-white">InternFlow</h1>
+<p class="text-xs font-medium text-[#637588] dark:text-[#96c5a9]">Student Portal</p>
+</div>
+</div>
+</div>
+<div class="px-4 py-4">
+<div class="bg-gradient-to-br from-primary/20 to-transparent p-4 rounded-xl border border-primary/20 relative overflow-hidden group cursor-pointer transition-all hover:border-primary/40">
+<div class="absolute top-0 right-0 p-2 opacity-50">
+<span class="material-symbols-outlined text-primary animate-pulse">emergency_home</span>
+</div>
+<p class="text-xs uppercase tracking-wider font-bold text-primary mb-1">AI Status: Online</p>
+<p class="text-sm font-medium text-[#111418] dark:text-white/90 leading-tight">Your mentor is ready to review your weekly report.</p>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+<p class="px-4 py-2 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Menu</p>
+<a href="{{url_for('intern_dashboard')}}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a href="{{ url_for('internship_progress') }}"class="group flex items-center justify-between px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">pie_chart</span>
+<span class="font-medium">My Progress</span>
+</div>
+<svg class="w-5 h-5" viewBox="0 0 36 36">
+  <path
+    d="M18 2.0845
+       a 15.9155 15.9155 0 0 1 0 31.831
+       a 15.9155 15.9155 0 0 1 0 -31.831"
+    fill="none"
+    stroke="#264532"
+    stroke-width="3"
+  />
+  <path
+    d="M18 2.0845
+       a 15.9155 15.9155 0 0 1 0 31.831
+       a 15.9155 15.9155 0 0 1 0 -31.831"
+    fill="none"
+    stroke="#38e07b"
+    stroke-width="3"
+    stroke-dasharray="{{ progress_percentage }}, 100"
+    stroke-linecap="round"
+  />
+</svg>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]" href="#">
+<span class="material-symbols-outlined fill-1">description</span>
+<span class="font-medium">Weekly Reports</span>
+</a>
+<a href="{{ url_for('avatar_page') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors animate-pulse">smart_toy</span>
+<span class="font-medium">AI Avatar Guidance</span>
+</a>
+<p class="px-4 py-2 mt-4 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Account</p>
+<a href="{{url_for('profile')}}"class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">person</span>
+<span class="font-medium">Profile</span>
+</a>
+</div>
+<div class="p-4 border-t border-[#e6e8eb] dark:border-[#1e3a29]">
+<div class="flex items-center justify-between gap-3 p-2 rounded-xl bg-[#f0f2f4] dark:bg-[#1a2c22]">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="Student profile picture" style="background-image: url('{{ userdetails.avatar_url }}');"></div>
+<div class="flex flex-col">
+<span class="text-sm font-bold text-[#111418] dark:text-white">{{ userdetails.first_name }} {{ userdetails.last_name }}</span>
+<span class="text-xs text-[#637588] dark:text-[#96c5a9]">Intern • {{ domain }}</span>
+</div>
+</div>
+<a href="{{url_for('logout')}}">
+<button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+</button>
+</a>
+</div>
+</div>
+</aside>
+<main class="flex-1 h-full overflow-y-auto bg-background-light dark:bg-background-dark relative">
+<div class="max-w-[1000px] mx-auto p-6 md:p-10 flex flex-col gap-8">
+<header class="flex flex-wrap justify-between items-end gap-4">
+<div>
+<h2 class="text-4xl font-black tracking-tight text-[#111418] dark:text-white mb-2">Weekly Report</h2>
+<p class="text-[#637588] dark:text-[#96c5a9] text-lg font-medium">Submit your progress for Week <span class="font-semibold">{{ week }}</span></p>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-[#264532] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white font-medium shadow-sm">
+<span class="material-symbols-outlined text-[20px] text-primary">date_range</span>
+<span>Due date: {{ due_date }}</span>
+</div>
+</div>
+</header>
+<section class="bg-white dark:bg-[#1a2c22] rounded-3xl p-6 md:p-8 shadow-sm border border-[#e6e8eb] dark:border-[#366348] relative overflow-hidden">
+<div class="absolute -top-20 -right-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+<form
+  method="post"
+  action="{{ url_for(
+    'weekly_report',
+    internship_id=selected_internship_id,
+    week=week
+  ) }}"
+>
+<div class="relative">
+  <select
+    class="internship-select
+           w-full px-5 py-4 pr-12
+           rounded-full
+           bg-white dark:bg-[#0f1f17]
+           text-[#111418] dark:text-white
+           border border-[#2d4f3a]
+           focus:outline-none focus:ring-2 focus:ring-green-500
+           appearance-none"
+    onchange="handleInternshipChange(this)"
+  >
+    {% for i in internships %}
+      <option value="{{ i.internship_id }}"
+        {% if i.internship_id == selected_internship_id %}selected{% endif %}
+      >
+        {{ i.title }}
+      </option>
+    {% endfor %}
+  </select>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-[#111418] dark:text-white uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg text-primary">calendar_today</span>
+                                Report Period
+                            </label>
+<input class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#637588] dark:text-[#96c5a9] font-medium focus:outline-none cursor-not-allowed" readonly="" type="text" value="{{ reportPeriod }}"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-[#111418] dark:text-white uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg text-primary">schedule</span>
+                                Attendance (%)
+                            </label>
+<div class="flex items-center gap-4 px-5 py-3 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] focus-within:border-primary transition-colors">
+<input name="attendance_percentage" 
+class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-[#264532] accent-primary" 
+max="100" 
+min="0" 
+type="range"
+required
+value="{{ existing_report.attendance_percentage if existing_report else attendance_percentage }}"
+disabled/>
+<span class="min-w-[3rem] text-right font-bold text-[#111418] dark:text-white">{{ attendance_percentage }}%</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-[#111418] dark:text-white uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg text-primary">assignment</span>
+                            Task Description
+                        </label>
+<p class="text-xs text-[#637588] dark:text-[#96c5a9] mb-1">Detail the projects and tickets you worked on. This data trains the ML model to suggest relevant resources.</p>
+<textarea name="task_description"
+class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" 
+placeholder="e.g. Completed the frontend integration for the user dashboard. Debugged API latency issues in the Python backend..." 
+rows="6"
+required
+>{{ existing_report.task_description if existing_report else "" }}</textarea>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-[#111418] dark:text-white uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg text-primary">psychology</span>
+                                Focus Skill
+                            </label>
+<div class="relative">
+<select name="focus_skill"class="bg-none w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all cursor-pointer">
+  {% for skill in skills %}
+    <option value="{{ skill.name }}">
+      {{ skill.name }}
+    </option>
+  {% endfor %}
+</select>
+<span class="appearance-none material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-[#637588] pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-[#111418] dark:text-white uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg text-primary">stars</span>
+                                Skill Rating (1-10)
+                            </label>
+<div class="relative">
+<select name="skill_rating" 
+class="bg-none w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all cursor-pointer"
+required>
+<option disabled="" selected="" value="">Select rating...</option>
+  {% for i in range(1, 11) %}
+    <option value="{{ i }}"
+      {% if existing_report and existing_report.skill_rating == i %}selected{% endif %}
+    >
+      {{ i }}
+    </option>
+  {% endfor %}
+</select>
+<span class="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-[#637588] pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-[#111418] dark:text-white uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg text-primary">battery_alert</span>
+        Stress Level This Week (1-5)
+    </label>
+<div class="flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] focus-within:border-primary transition-colors">
+<span class="flex justify-between w-full sm:w-auto sm:min-w-[8rem] text-xs font-medium text-[#637588] dark:text-[#96c5a9]">Low (1)</span>
+    <input   name="stress_level"
+  min="1"
+  max="5"
+  value="{{ existing_report.stress_level if existing_report else 3 }}" 
+  class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-[#264532] accent-primary" 
+  step="1" type="range" required/>
+<div class="flex justify-between w-full sm:w-auto sm:min-w-[8rem] text-xs font-medium text-[#637588] dark:text-[#96c5a9]">
+
+<span class="font-bold text-lg text-[#111418] dark:text-white sm:hidden">3</span>
+<span>High (5)</span>
+</div>
+<span class="hidden sm:inline font-bold text-[#111418] dark:text-white text-lg ml-2"></span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-[#111418] dark:text-white uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg text-primary">person_check</span>
+                            Self-Evaluation
+                        </label>
+<textarea name="self_evaluation"
+ class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
+  placeholder="Reflect on your performance. What went well?" 
+  rows="4" required>{{ existing_report.self_evaluation if existing_report else '' }}</textarea>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-[#111418] dark:text-white uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg text-primary">warning</span>
+        Challenges This Week
+    </label>
+<textarea name="challenges"
+class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" 
+placeholder="Describe any difficulties or obstacles you encountered..." rows="3">{{ existing_report.challenges if existing_report else '' }}</textarea>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-[#111418] dark:text-white uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-lg text-primary">flag</span>
+        Priorities of Next Week
+    </label>
+<textarea name="priorities"
+class="w-full px-5 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" 
+placeholder="Outline your main goals and tasks for the upcoming week..." rows="3">{{ existing_report.next_week_priorities if existing_report else "" }}</textarea>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-[#111418] dark:text-white uppercase tracking-wider flex items-center gap-2 col-span-1 md:col-span-2">
+<span class="material-symbols-outlined text-lg text-primary">attach_file</span>
+                            Evidence Upload / Link
+                        </label>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="flex flex-col gap-2 h-full">
+<div class="relative h-full">
+<div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+<span class="material-symbols-outlined text-[#637588]">link</span>
+</div>
+<input type="url" 
+name="evidence_link" 
+class="w-full h-full pl-12 pr-4 py-4 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
+placeholder="Paste external link (GitHub, Figma, etc.)" value="{{ existing_report.evidence_link if existing_report else '' }}" type="url"required/>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-6 flex flex-col gap-2">
+<div class="flex items-center justify-between pt-4 mt-2 border-t border-[#e6e8eb] dark:border-[#366348]">
+<button type="submit" name="action" 
+class="text-[#637588] dark:text-[#96c5a9] font-medium hover:text-[#111418] dark:hover:text-white transition-colors px-4 py-2" 
+value="draft">
+Save as Draft
+</button>
+{% if existing_report['status'] == 'submitted'or existing_report['status'] == 'reviewed' %}
+<button
+    type="submit"
+    name="action"
+    id="submitBtn"
+    value="submit"
+    disabled
+    class="flex items-center gap-2 px-8 py-3 rounded-full
+           bg-primary text-[#122017] font-bold
+           shadow-lg shadow-primary/25
+           transition-all
+           disabled:bg-gray-300
+           disabled:text-gray-500
+           disabled:shadow-none
+           disabled:cursor-not-allowed
+           disabled:hover:scale-100
+           disabled:active:scale-95">
+           
+    <span>{{ "Update Report" if existing_report else "Submit Weekly Report" }}</span>
+</button>
+{% else %}
+<button
+  type="submit"
+  {% if not can_submit %}disabled{% endif %}
+  class="ml-auto px-6 py-2 rounded-full font-bold
+         {% if can_submit %}
+           bg-primary text-[#122017] hover:bg-primary/90
+         {% else %}
+           bg-gray-400 cursor-not-allowed opacity-60
+         {% endif %}">
+  Submit Report
+</button>
+<span class="material-symbols-outlined text-[20px]">send</span>
+{% endif %}
+</div>
+{% if not can_submit %}
+  <p class="mt-100 text-sm text-yellow-400">
+    You can submit this report after
+    <strong>{{ week_end.strftime('%d %b %Y') }}</strong>
+  </p>
+{% endif %}
+</div>
+</form>
+{% if existing_report.status == 'reviewed' %}
+<div class="mt-6 bg-[#13261f] p-5 rounded-xl border border-green-700">
+    <div class="flex items-center gap-2 mb-2">
+        <span class="text-green-300 font-semibold">
+            Supervisor Feedback
+        </span>
+        <span class="px-2 py-0.5 text-xs rounded-full bg-green-800 text-green-200">
+            Reviewed
+        </span>
+    </div>
+
+    <p class="text-green-100 whitespace-pre-line">
+        {{ existing_report.supervisor_feedback or "No feedback provided." }}
+    </p>
+
+    {% if existing_report.reviewed_at %}
+    <p class="mt-2 text-xs text-green-500">
+        Reviewed on {{ existing_report.reviewed_at }}
+    </p>
+    {% endif %}
+</div>
+{% endif %}
+</section>
+<div class="flex gap-4 p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 text-blue-900 dark:text-blue-200">
+<span class="material-symbols-outlined shrink-0 mt-0.5">info</span>
+<div class="text-sm">
+<span class="font-bold block mb-1">Why is this data important?</span>
+                    Your input helps the AI Avatar customize your learning roadmap. Accurate reporting of attendance and skill confidence ensures you receive the right difficulty of tasks for next week.
+                </div>
+</div>
+</div>
+</main>
+<script>
+  function handleInternshipChange(select) {
+    const internshipId = select.value;
+    window.location.href =
+      `/intern/weekly-report/redirect/${internshipId}`;
+  }
+      document.addEventListener("DOMContentLoaded", () => {
+    const form = document.querySelector("form");
+    const submitBtn = document.getElementById("submitBtn");
+
+    if (!form || !submitBtn) return;
+
+    let isSubmitting = false;
+
+    form.addEventListener("submit", (e) => {
+      // If already submitting, block everything (mouse + keyboard)
+      if (isSubmitting) {
+        e.preventDefault();
+        return false;
+      }
+
+      isSubmitting = true;
+
+      // Disable button (mouse + keyboard)
+      submitBtn.disabled = true;
+      submitBtn.setAttribute("aria-disabled", "true");
+
+      // Visual feedback
+      submitBtn.classList.add("opacity-60", "cursor-not-allowed");
+      submitBtn.innerText = "Submitting…";
+    });
+
+    // Extra safety: block Enter key once submitting
+    form.addEventListener("keydown", (e) => {
+      if (isSubmitting && e.key === "Enter") {
+        e.preventDefault();
+      }
+    });
+  });
+</script>
+</body></html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Supervisor Dashboard | InternFlow</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#38e07b',
+            'background-light': '#f6f8f7',
+            'background-dark': '#122017',
+            'surface-dark': '#1a2c22'
+          },
+          fontFamily: {
+            display: ['Spline Sans', 'sans-serif']
+          },
+          borderRadius: {
+            DEFAULT: '1rem',
+            xl: '2rem',
+            full: '9999px'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white h-screen flex overflow-hidden">
+
+<!-- SIDEBAR -->
+<aside class="w-80 bg-background-light dark:bg-[#0e1a12] border-r border-[#e6e8eb] dark:border-[#1e3a29] flex flex-col">
+
+  <!-- Logo -->
+  <div class="p-6 flex items-center gap-3">
+    <div class="size-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+      <span class="material-symbols-outlined text-3xl">hub</span>
+    </div>
+    <div>
+      <h1 class="font-bold text-xl">InternFlow</h1>
+      <p class="text-xs text-[#637588] dark:text-[#96c5a9]">Supervisor Portal</p>
+    </div>
+  </div>
+
+  <!-- Menu -->
+  <nav class="flex-1 px-4 space-y-1">
+    <p class="px-4 py-2 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase">Menu</p>
+
+    <a href="{{ url_for('supervisor_dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] font-semibold">
+      <span class="material-symbols-outlined">dashboard</span>
+      Dashboard
+    </a>
+
+    <a href="{{ url_for('supervisor_interns') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">groups</span>
+      Interns
+    </a>
+
+    <a href="{{ url_for('supervisor_performance') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">analytics</span>
+      Performance
+    </a>
+
+    <a href="{{ url_for('supervisor_profile') }}"class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+      <span class="material-symbols-outlined">person</span>
+      Profile
+    </a>
+  </nav>
+
+  <!-- User -->
+  <div class="p-4 border-t border-[#e6e8eb] dark:border-[#1e3a29]">
+    <div class="flex items-center gap-3 p-3 rounded-xl bg-[#f0f2f4] dark:bg-[#1a2c22]">
+      <div class="size-10 rounded-full bg-cover bg-center" style="background-image:url('{{ supervisor_details.avatar_url }}');"></div>
+      <div class="flex-1">
+        <p class="text-sm font-bold">{{ supervisor_details.first_name }} {{ supervisor_details.last_name }}</p>
+        <p class="text-xs text-[#637588] dark:text-[#96c5a9]">{{ supervisor_details.designation }}</p>
+      </div>
+      <a href="{{ url_for('logout') }}">
+      <button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+      <span class="material-symbols-outlined text-[20px]">logout</span>
+      </button>
+      </a>
+    </div>
+  </div>
+
+</aside>
+
+<!-- MAIN -->
+<main class="flex-1 p-8 overflow-y-auto">
+
+  <!-- Header -->
+  <header class="mb-8">
+    <h2 class="text-4xl font-black mb-2">Supervisor Dashboard</h2>
+    <p class="text-[#637588] dark:text-[#96c5a9] text-lg">
+      Internship progress & reporting overview
+    </p>
+  </header>
+
+  <!-- KPI -->
+  <section class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-12">
+
+    <div class="bg-white dark:bg-[#1a2c22] p-6 rounded-3xl border border-[#e6e8eb] dark:border-[#366348]">
+      <p class="text-sm text-[#637588]">Total Interns</p>
+      <p class="text-3xl font-black mt-1">{{ total_interns }}</p>
+    </div>
+
+    <div class="bg-white dark:bg-[#1a2c22] p-6 rounded-3xl border border-[#e6e8eb] dark:border-[#366348]">
+      <p class="text-sm text-[#637588]">Active Internships</p>
+      <p class="text-3xl font-black mt-1">{{ active_internships }}</p>
+    </div>
+
+    <div class="bg-white dark:bg-[#1a2c22] p-6 rounded-3xl border border-[#e6e8eb] dark:border-[#366348]">
+      <p class="text-sm text-[#637588]">Reports Submitted</p>
+      <p class="text-3xl font-black text-primary mt-1">{{ submitted_reports }}</p>
+    </div>
+
+    <div class="bg-gradient-to-br from-primary/20 to-transparent p-6 rounded-3xl border border-[#e6e8eb] dark:border-[#366348]">
+      <p class="text-sm text-[#637588]">Pending Reports</p>
+      <p class="text-3xl font-black text-red-500 mt-1">{{ pending_reviews }}</p>
+    </div>
+
+  </section>
+
+  <!-- PROGRESS SECTION -->
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- Progress Bars -->
+    <div class="lg:col-span-2 bg-white dark:bg-[#1a2c22] p-6 rounded-3xl border border-[#e6e8eb] dark:border-[#366348]">
+      <h3 class="text-lg font-bold mb-6">Internship Progress</h3>
+
+      <div class="space-y-6">
+
+        <!-- Reports -->
+        <div>
+          <div class="flex justify-between text-sm mb-1">
+            <span>Reports Submitted</span>
+            <span class="text-primary font-semibold">81%</span>
+          </div>
+          <div class="h-3 bg-[#e6e8eb] dark:bg-[#264532] rounded-full">
+            <div class="h-full w-[81%] bg-primary rounded-full"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Top Intern -->
+     {% if top_intern %}
+    <div class="bg-gradient-to-br from-primary/20 to-transparent p-6 rounded-3xl border border-[#e6e8eb] dark:border-[#366348]">
+      <h3 class="text-lg font-bold mb-4">Top Intern</h3>
+      <div class="flex items-center gap-4">
+<div class="size-20 rounded-full bg-cover bg-center" style="background-image:url('{{ top_intern.avatar_url }}');"></div>
+        <div>
+          <p class="font-bold">{{ top_intern.intern_name }}</p>
+          <p class="text-sm text-[#637588]">{{ top_intern.domain }}</p>
+          <p class="text-sm font-semibold text-primary mt-1">
+            {{ top_intern.report_count }} Reports Submitted
+          </p>
+        </div>
+      </div>
+            <a
+              href="{{ url_for('supervisor_view_intern', intern_id=top_intern['user_id'], internship_id=top_intern.internship_id) }}"
+            >
+
+      <button class="mt-6 w-full py-2 rounded-full bg-primary text-[#122017] font-bold">
+        View Profile
+      </button>
+      </a>
+      {% else %}
+        <p class="text-sm italic text-muted">
+          No reports submitted yet.
+        </p>
+      {% endif %}
+    </div>
+
+  </section>
+
+<!-- Recent Weekly Reports -->
+<div class="rounded-2xl bg-surface border border-[#e6e8eb] dark:border-[#366348] border-borderc p-6 mt-6">
+  <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+    <span class="material-symbols-outlined text-primary">history</span>
+    Recent Weekly Reports
+  </h2>
+
+  {% if recent_reports %}
+    <div class="space-y-3">
+      {% for report in recent_reports %}
+        <div class="flex items-center justify-between bg-background border border-[#e6e8eb] dark:border-[#366348] border-borderc rounded-xl px-4 py-3">
+          <div>
+            <p class="font-medium">{{ report.intern_name }}</p>
+            <p class="text-xs text-muted">
+              Week {{ report.week_number }} · {{ report.domain }}
+            </p>
+          </div>
+
+          <span class="text-primary text-sm flex items-center gap-1">
+          <a href="{{ url_for('supervisor_weeklyreports', internship_id=report.internship_id,week=report.week_number) }}"
+          class="text-primary text-sm font-medium hover:underline">
+            View →
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-sm italic text-muted">
+      No recent reports submitted.
+    </p>
+  {% endif %}
+</div>
+
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+.vscode/
+venv/
+__pycache__/
+*.pyc
+*.zip
+hf_cache/
+torch_cache/
+tts_cache/
+*.flac
+*.wav
+needtodo.txt
+*.bkp
+templates/intern/pdf_report.html
+weekly_reports.sql
+static/uploads/avatars
+internship.db
