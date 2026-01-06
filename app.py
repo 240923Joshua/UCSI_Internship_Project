@@ -2,7 +2,7 @@ import csv,io,os,ml_prediction
 from flask import Flask,render_template, request, redirect, url_for, session, jsonify, flash,make_response,abort
 from db import get_db, calculate_attendance_percentage
 from hasher import hash_password, verify_password
-from llm import generate_response, build_avatar_prompt, synthesize_speech
+# from llm import generate_response, build_avatar_prompt, synthesize_speech
 from memory import get_last_message, set_last_message
 from datetime import date, datetime, timedelta
 from werkzeug.utils import secure_filename
@@ -177,7 +177,7 @@ def intern_dashboard():
 
     report = cursor.fetchone()
 
-    if report and report["status"] == "submitted":
+    if report and report["status"] == "submitted" or report["status"] == 'reviewed':
         weekly_status = "Submitted"
         next_due = f"Week {currentWeek + 1}"
     else:
@@ -461,10 +461,16 @@ def supervisor_dashboard():
         FROM weekly_reports wr
         JOIN internship i ON i.internship_id = wr.internship_id
         WHERE i.supervisor_id = ?
-          AND wr.status = 'submitted'
+          AND wr.status IN ('submitted', 'reviewed')
     """, (supervisor_id,)).fetchone()[0]
 
-    pending_reviews = submitted_reports
+    pending_reviews = db.execute("""
+        SELECT COUNT(*)
+        FROM weekly_reports wr
+        JOIN internship i ON i.internship_id = wr.internship_id
+        WHERE i.supervisor_id = ?
+        AND wr.status = 'submitted'
+    """,(supervisor_id,)).fetchone()[0]
     
     recent_reports = db.execute("""
     SELECT
@@ -478,7 +484,7 @@ def supervisor_dashboard():
     JOIN internship i ON i.internship_id = wr.internship_id
     JOIN user_details ud ON ud.user_id = i.user_id
     WHERE i.supervisor_id = ?
-      AND wr.status = 'submitted'
+      AND wr.status IN ('submitted','reviewed')
     ORDER BY wr.submitted_at DESC
     LIMIT 5
     """, (supervisor_id,)).fetchall() 
@@ -501,7 +507,7 @@ def supervisor_dashboard():
     JOIN internship i ON i.internship_id = wr.internship_id
     JOIN user_details ud ON ud.user_id = i.user_id
     WHERE i.supervisor_id = ?
-      AND wr.status = 'submitted'
+      AND wr.status IN ('submitted','reviewed')
     GROUP BY i.user_id
     ORDER BY report_count DESC
     LIMIT 1
@@ -539,47 +545,6 @@ def supervisor_dashboard():
     supervisor_details=supervisor_details,submitted_reports=submitted_reports,pending_reviews=pending_reviews,
     recent_reports=recent_reports,active_internships=active_internships,top_intern=top_intern,
     supervisor_weeklyReportRedirect=supervisor_weeklyReportRedirect)
-
-@app.route("/supervisor/report/<int:report_id>")
-def supervisor_view_report(report_id):
-    if "user_id" not in session or session.get("role") != "supervisor":
-        return redirect(url_for("login"))
-
-    supervisor_id = session["user_id"]
-    db = get_db()
-
-    cursor = db.execute("""
-        SELECT
-            wr.report_id,
-            wr.week_number,
-            wr.task_description,
-            wr.focus_skill,
-            wr.skill_rating,
-            wr.stress_level,
-            wr.self_evaluation,
-            wr.challenges,
-            wr.next_week_priorities,
-            wr.evidence_link,
-            wr.submitted_at,
-            ud.first_name || ' ' || ud.last_name AS intern_name,
-            i.domain
-        FROM weekly_reports wr
-        JOIN internship i ON i.internship_id = wr.internship_id
-        JOIN user_details ud ON ud.user_id = i.user_id
-        WHERE wr.report_id = ?
-          AND i.supervisor_id = ?
-          AND wr.status = 'submitted'
-    """, (report_id, supervisor_id))
-
-    report = cursor.fetchone()
-
-    if report is None:
-        return redirect(url_for("supervisor_dashboard"))
-
-    return render_template(
-        "supervisor/viewWeeklyReport.html",
-        report=report
-    )
 
 @app.route("/supervisor/interns")
 def supervisor_interns():
@@ -627,7 +592,7 @@ def supervisor_interns():
                 SELECT COUNT(*)
                 FROM weekly_reports wr
                 WHERE wr.internship_id = i.internship_id
-                    AND wr.status = 'submitted'
+                    AND wr.status IN ('submitted','reviewed')
                 ) * 100.0 /
                 NULLIF(
                 (JULIANDAY('now') - JULIANDAY(i.start_date)) / 7,
@@ -768,7 +733,7 @@ def supervisor_view_intern(intern_id,internship_id):
                   SELECT COUNT(*)
                   FROM weekly_reports wr
                   WHERE wr.internship_id = i.internship_id
-                    AND wr.status = 'submitted'
+                    AND wr.status IN ('submitted', 'reviewed')
                 ) * 100.0 /
                 NULLIF(
                   (JULIANDAY('now') - JULIANDAY(i.start_date)) / 7,
@@ -872,7 +837,7 @@ def supervisor_weeklyreports(internship_id):
             wr.internship_id,
             COUNT(*) AS submitted_reports
         FROM weekly_reports wr
-        WHERE wr.status = 'submitted'
+        WHERE wr.status IN ('submitted', 'reviewed')
         GROUP BY wr.internship_id
     )
     SELECT
@@ -1482,7 +1447,7 @@ def profile():
         """
         SELECT COUNT(*) AS submitted_reports
         FROM weekly_reports
-        WHERE user_id = ? AND internship_id = ? AND status = 'submitted'
+        WHERE user_id = ? AND internship_id = ? AND status IN ('submitted','reviewed')
         """,
         (user_id, internship_id)
     ).fetchone()["submitted_reports"]
@@ -1491,7 +1456,7 @@ def profile():
         """
         SELECT COUNT(DISTINCT focus_skill) AS skill_variety
         FROM weekly_reports
-        WHERE user_id = ? AND internship_id = ? AND status = 'submitted'
+        WHERE user_id = ? AND internship_id = ? AND status IN ('submitted','reviewed')
         """,
         (user_id, internship_id)
     ).fetchone()["skill_variety"]
@@ -2149,4 +2114,4 @@ def avatar_page():
     )
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
