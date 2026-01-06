@@ -1,20 +1,89 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}Intern Dashboard{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
+<style>
+  body {
+    font-family: 'Spline Sans', sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #122017;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #264532;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #38e07b;
+  }
+
+  .chat-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .chat-scroll::-webkit-scrollbar-thumb {
+    background: #264532;
+    border-radius: 3px;
+  }
+
+  .flash-message {
+    transition: all 0.5s ease;
+    transform: translateX(20px);
+    opacity: 0;
+  }
+
+  .flash-message.show {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  .flash-message.hide {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const messages = document.querySelectorAll(".flash-message");
+
+    messages.forEach((msg, index) => {
+      setTimeout(() => msg.classList.add("show"), index * 120);
+
+      setTimeout(() => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+        setTimeout(() => msg.remove(), 500);
+      }, 3000 + index * 120);
+
+      msg.addEventListener("click", () => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+        setTimeout(() => msg.remove(), 300);
+      });
+    });
+  });
+</script>
+
 <body class="bg-[#f9fafb] dark:bg-[#0f1b14]">
+
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     <div class="fixed top-6 right-6 z-50 space-y-2">
       {% for category, message in messages %}
         <div
-          class="px-4 py-3 rounded-xl shadow-lg text-sm
-                 {% if category == 'success' %}bg-green-600 text-white{% endif %}
-                 {% if category == 'warning' %}bg-yellow-500 text-black{% endif %}
-                 {% if category == 'error' %}bg-red-600 text-white{% endif %}"
+          class="flash-message px-4 py-3 rounded-xl shadow-lg text-sm
+          {% if category == 'success' %}bg-green-600 text-white{% endif %}
+          {% if category == 'warning' %}bg-yellow-500 text-black{% endif %}
+          {% if category == 'error' %}bg-red-600 text-white{% endif %}"
         >
           {{ message }}
         </div>
@@ -22,10 +91,10 @@
     </div>
   {% endif %}
 {% endwith %}
-  <!-- MAIN CONTENT -->
-  <main class="p-6">
-    {% block content %}{% endblock %}
-  </main>
+
+<main class="p-6 max-w-7xl mx-auto">
+  {% block content %}{% endblock %}
+</main>
 
 </body>
 </html>

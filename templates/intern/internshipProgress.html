@@ -43,6 +43,11 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #38e07b; 
         }
+          .flash-message {
+      transition: all 0.5s ease;
+      transform: translateX(20px);
+      opacity: 0;
+    }
           .flash-message.show {
           transform: translateX(0);
           opacity: 1;
@@ -469,97 +474,9 @@
 
     
     <!-- Line Graph -->
-    <div class="mt-2">
-      <svg
-  viewBox="0 0 100 100"
-  class="w-full h-28"
->
-
-  {% set values = progress_stats.skill_trend_normalized %}
-  {% set count = values|length %}
-  {% if count < 2 %}
-      <div class="flex flex-col items-center justify-center h-28 text-[#96c5a9] gap-2">
-        <span class="material-symbols-outlined text-3xl opacity-50">
-          show_chart
-        </span>
-        <span>No reports submitted yet</span>
-      </div>
-  {% else %}
-  {% set step = 100 / (count - 1) %}
-
-  {% set path = [] %}
-  {% for y in values %}
-    {% set x = loop.index0 * step %}
-    {% set yv = 100 - y %}
-    {% if loop.first %}
-      {% set _ = path.append("M " ~ x ~ " " ~ yv) %}
-    {% else %}
-      {% set px = (loop.index0 - 1) * step %}
-      {% set py = 100 - values[loop.index0 - 1] %}
-      {% set cx = (px + x) / 2 %}
-      {% set cy = (py + yv) / 2 %}
-      {% set _ = path.append("Q " ~ px ~ " " ~ py ~ ", " ~ cx ~ " " ~ cy) %}
-    {% endif %}
-  {% endfor %}
-  {% set _ = path.append("T " ~ x ~ " " ~ yv) %}
-  {% endif %}
-
-  <!-- Glow -->
-  <path
-    d="{{ path | join(' ') }}"
-    fill="none"
-    stroke="#22c55e"
-    stroke-width="6"
-    stroke-opacity="0.08"
-    stroke-linecap="round"
-  />
-
-  <!-- Main line -->
-  <path
-    d="{{ path | join(' ') }}"
-    fill="none"
-    stroke="#22c55e"
-    stroke-width="4"
-    stroke-linecap="round"
-  />
-      <path
-  id="trendPath"
-  d="{{ path | join(' ') }}"
-  fill="none"
-  stroke="none"
-  pathLength="1"
-/>
-
-{% set count = progress_stats.skill_trend | length %}
-
-{% for i in range(progress_stats.skill_trend|length) %}
-{% if count >= 2 %}
-  {% for i in range(count) %}
-    <circle r="3" fill="#22c55e">
-      <animateMotion
-        dur="0.001s"
-        fill="freeze"
-        keyPoints="{{ i / (count - 1) }}"
-        keyTimes="0"
-        calcMode="linear"
-        path="{{ path | join(' ') }}"
-      />
-      <title>
-        Week {{ i + 1 }} : Skill {{ progress_stats.skill_trend[i] }}
-      </title>
-    </circle>
-  {% endfor %}
-{% endif %}
-{% endfor %}
-</svg>
-
-    </div>
+<canvas id="skillTrendChart" class="w-full h-28"></canvas>
 
     <!-- Caption -->
-    <p class="text-xs text-[#637588] dark:text-[#96c5a9]">
-      Skill rating over last {{ progress_stats.skill_trend | length }} reports
-    </p>
-
   </div>
 </div>
 
@@ -670,4 +587,67 @@
 </div>
 </main>
 </body>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const data = {{ skill_trend | tojson }};
+  if (!data || data.length < 2) return;
+
+  const canvas = document.getElementById("skillTrendChart");
+  const ctx = canvas.getContext("2d");
+
+  // 🔥 CRITICAL
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+
+  const padding = 10;
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+
+  const stepX = (canvas.width - padding * 2) / (data.length - 1);
+
+  const points = data.map((v, i) => ({
+    x: padding + i * stepX,
+    y:
+      max === min
+        ? canvas.height / 2
+        : canvas.height - padding -
+          ((v - min) / (max - min)) * (canvas.height - padding * 2),
+  }));
+
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+// GLOW
+ctx.beginPath();
+points.forEach((p, i) => {
+  i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+});
+ctx.strokeStyle = "rgba(56, 224, 123, 0.35)";
+ctx.lineWidth = 6;
+ctx.lineCap = "round";
+ctx.shadowBlur = 12;
+ctx.shadowColor = "#38e07b";
+ctx.stroke();
+
+// MAIN LINE
+ctx.shadowBlur = 0;
+ctx.beginPath();
+points.forEach((p, i) => {
+  i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+});
+ctx.strokeStyle = "#38e07b";
+ctx.lineWidth = 3;
+ctx.stroke();
+
+
+  // ---------- POINT DOTS ----------
+[points[0], points[points.length - 1]].forEach(p => {
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+  ctx.fillStyle = "#38e07b";
+  ctx.fill();
+});
+
+});
+</script>
+
 </html>

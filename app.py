@@ -2,7 +2,7 @@ import csv,io,os,ml_prediction
 from flask import Flask,render_template, request, redirect, url_for, session, jsonify, flash,make_response,abort
 from db import get_db, calculate_attendance_percentage
 from hasher import hash_password, verify_password
-from llm import generate_response, build_avatar_prompt, synthesize_speech
+# from llm import generate_response, build_avatar_prompt, synthesize_speech
 from memory import get_last_message, set_last_message
 from datetime import date, datetime, timedelta
 from werkzeug.utils import secure_filename
@@ -112,7 +112,6 @@ def intern_dashboard():
     # 2️⃣ Loop through each active internship
     for internship in internships:
         internship_id = internship["internship_id"]
-
         # Check if attendance already marked today
         already_marked = db.execute("""
             SELECT 1
@@ -120,15 +119,13 @@ def intern_dashboard():
             WHERE user_id = ?
             AND internship_id = ?
             AND date = ?
-        """, (user_id, internship_id, today)).fetchone()
-
+        """, (user_id, internship_id, today)).fetchone()[0]
         # 3️⃣ Auto-mark Present if not exists
         if not already_marked:
             db.execute("""
                 INSERT INTO attendance (user_id, internship_id, date, status)
                 VALUES (?, ?, ?, 'Present')
             """, (user_id, internship_id, today))
-
     db.commit()
 
     cursor = db.execute("SELECT * FROM internship WHERE user_id = ?", (user_id,))
@@ -1432,14 +1429,6 @@ def profile():
         completion = round((days_passed / total_days) * 100, 2)
 
     # --------------------
-    # Supervisor (display)
-    # --------------------
-    supervisor = db.execute(
-        "SELECT * FROM user_details WHERE user_id = ?",
-        (internship["supervisor_id"],)
-    ).fetchone()
-
-    # --------------------
     # Attendance + reports
     # --------------------
     internship_id = internship["internship_id"]
@@ -1512,6 +1501,31 @@ def profile():
     # --------------------
     domain = " • ".join(i["domain"] for i in internships)
 
+    
+    # --------------------
+    # Supervisor (display)
+    # --------------------
+
+    supervisor_details = db.execute("""
+        SELECT
+            ud.user_id,
+            ud.first_name,
+            ud.last_name,
+            ud.email,
+            ud.phone_number,
+            ud.avatar_url,
+
+            sd.employee_id,
+            sd.designation,
+            sd.department,
+            sd.organization,
+            sd.experience_years
+        FROM user_details ud
+        LEFT JOIN supervisor_details sd
+            ON ud.user_id = sd.user_id
+        WHERE ud.user_id = ?
+    """, (internship['supervisor_id'],)).fetchone()
+
     return render_template(
         "intern/profile.html",
         user_details=user_details,
@@ -1524,9 +1538,9 @@ def profile():
         today=today.strftime("%d %b %Y"),
         progress_percentage=myProgressPercentage(db, user_id),
         weeklyReportRedirect=weeklyReportRedirect,
-        supervisor=supervisor,
         status=status,
-        counts=counts
+        counts=counts,
+        supervisor_details=supervisor_details
     )
 
 @app.route("/intern/profile/edit", methods=["GET", "POST"])
@@ -1837,19 +1851,11 @@ def internship_progress():
     r["skill_rating"] for r in skill_rows
     ]))
 
-    if skill_trend:
-        max_val = max(skill_trend)
-        min_val = min(skill_trend)
+    skill_trend_weeks = list(range(
+    current_week - len(skill_trend) + 1,
+    current_week + 1
+))
 
-        if max_val == min_val:
-            normalized = [50 for _ in skill_trend]
-        else:
-            normalized = [
-                int((v - min_val) / (max_val - min_val) * 90 + 5)
-                for v in skill_trend
-            ]
-    else:
-        normalized = []
     
     skill_stats = get_skill_stats(db, user_id, selected_internship_id)
 
@@ -1907,8 +1913,6 @@ def internship_progress():
     "domain": domain,
     "performance_trend": trend,
     "trend_delta": trend_delta,
-    "skill_trend": skill_trend,
-    "skill_trend_normalized": normalized
     }
     if len(skill_trend) < 2:
         progress_stats["skill_trend_normalized"] = []
@@ -1928,7 +1932,9 @@ def internship_progress():
         skill_stats=skill_stats,
         outstanding_tasks=outstanding_tasks,
         progress_percentage=progress_percentage,
-        weeklyReportRedirect=weeklyReportRedirect
+        weeklyReportRedirect=weeklyReportRedirect,
+        skill_trend=skill_trend,
+        skill_trend_weeks=skill_trend_weeks
     )
 
 @app.route("/intern/skills")
@@ -2129,4 +2135,4 @@ def avatar_page():
     )
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=True)

@@ -27,9 +27,64 @@
       },
     }
   </script>
+  <style>
+    .flash-message {
+    transform: translateX(20px);
+    opacity: 0;
+    transition: all 0.5s ease;
+}
+    .flash-message.show {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  .flash-message.hide {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+</style>
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const messages = document.querySelectorAll(".flash-message");
+
+    messages.forEach((msg, index) => {
+      setTimeout(() => msg.classList.add("show"), index * 120);
+
+      setTimeout(() => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+        setTimeout(() => msg.remove(), 500);
+      }, 3000 + index * 120);
+
+      msg.addEventListener("click", () => {
+        msg.classList.remove("show");
+        msg.classList.add("hide");
+        setTimeout(() => msg.remove(), 300);
+      });
+    });
+  });
+</script>
 </head>
 
 <body class="bg-backgroundDark text-white min-h-screen flex items-center justify-center">
+
+    <!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="fixed top-6 right-6 z-50 space-y-2">
+      {% for category, message in messages %}
+        <div
+          class="flash-message px-4 py-3 rounded-xl shadow-lg text-sm
+          {% if category == 'success' %}bg-green-600 text-white{% endif %}
+          {% if category == 'warning' %}bg-yellow-500 text-black{% endif %}
+          {% if category == 'error' %}bg-red-600 text-white{% endif %}"
+        >
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
 
   <div class="w-full max-w-lg bg-surfaceDark rounded-2xl p-8 shadow-xl">
 
@@ -40,22 +95,6 @@
         Update your professional information
       </p>
     </div>
-
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="space-y-3 mb-4">
-          {% for category, message in messages %}
-            <div class="px-4 py-3 rounded-lg text-sm font-medium
-              {% if category == 'success' %}bg-primary text-[#122017]{% endif %}
-              {% if category == 'error' %}bg-red-600 text-white{% endif %}
-            ">
-              {{ message }}
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
 
     <!-- Form -->
     <form method="POST" class="space-y-4">

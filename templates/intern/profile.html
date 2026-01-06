@@ -81,6 +81,11 @@
       .avatar-option.selected .check-icon {
         display: block;
       }
+        .flash-message {
+    transition: all 0.5s ease;
+    transform: translateX(20px);
+    opacity: 0;
+  }
         .flash-message.show {
           transform: translateX(0);
           opacity: 1;
@@ -383,10 +388,10 @@
 <div class="p-6 rounded-2xl -mt-2 bg-[#f0f2f4] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#1e3a29]">
 <p class="text-xs text-[#637588] dark:text-[#96c5a9] uppercase tracking-wider font-bold mb-4">Assigned Supervisor</p>
 <div class="flex items-center gap-5">
-<div class="size-14 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xl border-2 border-white dark:border-[#1a2c22]">{{ supervisor.first_name[0].upper() }}{{ supervisor.last_name[0].upper() }}</div>
+<div class="size-14 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xl border-2 border-white dark:border-[#1a2c22]">{{ supervisor_details.first_name[0].upper() }}{{ supervisor_details.last_name[0].upper() }}</div>
 <div>
-<p class="font-bold text-[#111418] dark:text-white text-lg">{{ supervisor.first_name }} {{ supervisor.last_name }}</p>
-<p class="text-xs text-[#637588] dark:text-[#96c5a9] font-medium">{{ selected_internship.supervisor_title }} • {{ selected_internship.supervisor_department }}</p>
+<p class="font-bold text-[#111418] dark:text-white text-lg">{{ supervisor_details.first_name }} {{ supervisor_details.last_name }}</p>
+<p class="text-xs text-[#637588] dark:text-[#96c5a9] font-medium">{{ supervisor_details.designation }} • {{ supervisor_details.department }}</p>
 </div>
 </div>
 </div>

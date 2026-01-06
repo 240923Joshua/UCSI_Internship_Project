@@ -52,6 +52,11 @@
             background: #264532;
             border-radius: 3px;
         }
+          .flash-message {
+        transition: all 0.5s ease;
+        transform: translateX(20px);
+        opacity: 0;
+      }
         .flash-message.show {
           transform: translateX(0);
           opacity: 1;
@@ -300,9 +305,6 @@
 <form class="relative flex items-end gap-2">
 <div class="relative flex-1">
 <textarea class="w-full pl-4 pr-12 py-3 rounded-xl bg-[#f6f8f7] dark:bg-[#122017] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white placeholder-[#637588] dark:placeholder-[#588569] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none h-[50px] max-h-[120px] leading-relaxed" placeholder="Ask the Avatar about your progress or for help..." rows="1"></textarea>
-<button class="absolute right-2 bottom-2 p-1.5 text-[#637588] dark:text-[#96c5a9] hover:text-primary transition-colors" type="button">
-<span class="material-symbols-outlined text-[20px]">mic</span>
-</button>
 </div>
 <button id="sendBtn" class="p-3 bg-primary text-[#122017] rounded-xl hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20 shrink-0" type="submit">
 <span class="material-symbols-outlined filled">send</span>
