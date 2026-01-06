@@ -253,19 +253,47 @@
 </div>
 </div>
 <div class="p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm">
+{% if ml_results and ml_results.predicted_score and ml_results.predicted_score != 0 %}
 <div class="flex flex-col h-full justify-between gap-4">
-<div class="flex items-center justify-between">
-<span class="p-2 rounded-lg bg-primary/10 text-primary material-symbols-outlined">check_circle</span>
-<span class="text-xs font-bold uppercase text-[#637588] dark:text-[#96c5a9] tracking-wide">Tasks Score</span>
+    <div class="flex items-center justify-between">
+        <span class="p-2 rounded-lg bg-primary/10 text-primary material-symbols-outlined">
+            check_circle
+        </span>
+        <span class="text-xs font-bold uppercase text-[#637588] dark:text-[#96c5a9] tracking-wide">
+            Tasks Score
+        </span>
+    </div>
+
+    <div>
+        <span class="text-3xl font-bold text-[#111418] dark:text-white">
+            {{ ml_results.predicted_score }}/100
+        </span>
+        <p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-1">
+            {{ ml_results.recommendation }}
+        </p>
+    </div>
+
+    <div class="w-full bg-[#e6e8eb] dark:bg-[#122017] h-1.5 rounded-full overflow-hidden">
+        <div class="bg-primary h-full rounded-full"
+             style="--w: {{ ml_results.predicted_score }}%; width: var(--w);">
+        </div>
+    </div>
 </div>
-<div>
-<span class="text-3xl font-bold text-[#111418] dark:text-white">{{ ml_results.predicted_score }}/100</span>
-<p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-1">{{ ml_results.recommendation }}</p>
+
+{% else %}
+<div class="flex flex-col h-full justify-center items-center gap-3 text-center">
+    <span class="p-2 rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-500 material-symbols-outlined">
+        hourglass_empty
+    </span>
+    <p class="text-sm text-[#637588] dark:text-[#96c5a9]">
+        Performance score not available yet
+    </p>
+    <p class="text-xs text-[#8a9aa9]">
+        Complete more weekly reports to generate insights
+    </p>
 </div>
-<div class="w-full bg-[#e6e8eb] dark:bg-[#122017] h-1.5 rounded-full overflow-hidden">
-<div class="bg-primary h-full rounded-full" style="width: {{ ml_results.predicted_score }}%"></div>
-</div>
-</div>
+{% endif %}
+
 </div>
 <div class="p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm">
   <div class="flex flex-col h-full justify-between gap-4">

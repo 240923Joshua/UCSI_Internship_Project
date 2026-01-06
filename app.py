@@ -141,8 +141,9 @@ def intern_dashboard():
     progress_percentage = myProgressPercentage(db, user_id)
 
     internship_id = request.args.get("internship_id", type=int)
-    if not internship_id:
-        internship_id = internships[-1]["internship_id"]
+    if internships:
+        if not internship_id:
+            internship_id = internships[-1]["internship_id"]
 
     cursor = db.execute("""
     SELECT *
@@ -179,10 +180,8 @@ def intern_dashboard():
         AND internship_id = ?
         AND week_number = ?
     """, (user_id, internship_id, currentWeek))
-
     report = cursor.fetchone()
-
-    if report and report["status"] == "submitted" or report["status"] == 'reviewed':
+    if report is not None and report["status"] in ("submitted", "reviewed"):
         weekly_status = "Submitted"
         next_due = f"Week {currentWeek + 1}"
     else:
@@ -523,7 +522,7 @@ def supervisor_dashboard():
         WHERE supervisor_id = ?
         ORDER BY internship_id DESC
         LIMIT 1
-    """, (supervisor_id,)).fetchone()[0]
+    """, (supervisor_id,)).fetchone()
 
     supervisor_details = db.execute("""
         SELECT
@@ -694,7 +693,7 @@ def supervisor_interns():
         WHERE supervisor_id = ?
         ORDER BY internship_id DESC
         LIMIT 1
-    """, (supervisor_id,)).fetchone()[0]
+    """, (supervisor_id,)).fetchone()
     return render_template('supervisor/supervisorInterns.html',supervisor_details=supervisor_details,interns=interns,domains=domains,
     supervisor_weeklyReportRedirect=supervisor_weeklyReportRedirect)
 
