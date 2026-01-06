@@ -29,6 +29,8 @@ CREATE TABLE IF NOT EXISTS attendance (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (internship_id) REFERENCES internship(internship_id) ON DELETE CASCADE
 );
+CREATE UNIQUE INDEX uniq_attendance
+ON attendance(user_id, internship_id, date);
 
 -- Data exporting was unselected.
 
