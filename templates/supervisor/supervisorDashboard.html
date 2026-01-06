@@ -128,7 +128,7 @@
 
     <div class="bg-gradient-to-br from-primary/20 to-transparent p-6 rounded-3xl border border-[#e6e8eb] dark:border-[#366348]">
       <p class="text-sm text-[#637588]">Pending Reports</p>
-      <p class="text-3xl font-black text-red-500 mt-1">{{ submitted_reports }}</p>
+      <p class="text-3xl font-black text-red-500 mt-1">{{ pending_reviews }}</p>
     </div>
 
   </section>
@@ -206,10 +206,6 @@
           </div>
 
           <span class="text-primary text-sm flex items-center gap-1">
-          <!-- <a
-            href="{{ url_for('supervisor_view_report', report_id=report.report_id) }}"
-            class="text-primary text-sm font-medium hover:underline"
-          > -->
           <a href="{{ url_for('supervisor_weeklyreports', internship_id=report.internship_id,week=report.week_number) }}"
           class="text-primary text-sm font-medium hover:underline">
             View →

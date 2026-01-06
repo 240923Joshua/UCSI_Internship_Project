@@ -15,15 +15,13 @@ UPLOAD_FOLDER = 'static/uploads/avatars'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# Helper functions
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def allowed_file(filename):
     return "." in filename and \
            filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
-@app.route("/")
-def home():
-    return redirect(url_for('login'))
 
 def get_skill_stats(db, user_id, internship_id):
     cursor = db.execute("""
@@ -84,6 +82,13 @@ def myProgressPercentage(db, user_id):
     ml_results = ml_results if ml_results else 0
     return round(ml_results / internships,2)
 
+# Home routing
+
+@app.route("/")
+def home():
+    return redirect(url_for('login'))
+
+# Intern routing
 
 @app.route("/intern/dashboard")
 def intern_dashboard():
@@ -210,12 +215,6 @@ def intern_dashboard():
     progress_percentage=progress_percentage, active_internship_id=internship_id,
     total_weeks=total_weeks, currentWeek=currentWeek,progressPercentage=progressPercentage,
     next_due=next_due,weekly_status=weekly_status)
-   
-
-# @app.route("/flash-test")
-# def flash_test():
-#     flash("This is a test flash message!", "success")
-#     return redirect(url_for("avatar_page"))
 
 @app.route(
     "/intern/weekly-report/<int:internship_id>/<int:week>",
@@ -438,6 +437,11 @@ def weekly_report_redirect(internship_id):
         week=current_week
     ))
 
+# Intern route stopped continues later
+# -------------------------------------------------------------------
+
+# Supervisor routing
+
 @app.route("/supervisor/dashboard")
 def supervisor_dashboard():
     if "user_id" not in session or session.get("role") != "supervisor":
@@ -471,7 +475,7 @@ def supervisor_dashboard():
         WHERE i.supervisor_id = ?
         AND wr.status = 'submitted'
     """,(supervisor_id,)).fetchone()[0]
-    
+
     recent_reports = db.execute("""
     SELECT
         wr.report_id,
@@ -1231,7 +1235,10 @@ def supervisor_performance_data():
 
     return jsonify(domains)
 
+# Supervisor routing ends
+# ---------------------------------------------------------------------
 
+# Login/logout route
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -1275,6 +1282,8 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for("login"))
+
+# Profile avatar changes route
 
 @app.route("/update-avatar", methods=["POST"])
 def update_avatar():
@@ -1327,6 +1336,8 @@ def upload_avatar():
 
     return "", 204
 
+
+# Intern route continues
 
 @app.route("/intern/profile")
 def profile():
@@ -1562,6 +1573,7 @@ def edit_profile():
         user_details=user_details
     )
 
+# Change password route (Used by both intern and supervisor)
 
 @app.route("/change-password", methods=["GET", "POST"])
 def change_password():
@@ -1982,6 +1994,8 @@ def intern_report_history():
         previous_page=previous_page
     )
 
+# Avatar POST route (kind of helper function)
+
 @app.route("/avatar/chat", methods=["POST"])
 def avatar_chat():
     if "user_id" not in session:
@@ -2059,6 +2073,8 @@ def avatar_chat():
         "audio_url": f"/static/audio/user_{user_id}/{filename}"
     })
 
+
+# Avatar chat route (Used by intern only)
 
 @app.route("/intern/avatar", methods=["GET", "POST"])
 def avatar_page():
