@@ -2,7 +2,7 @@ import csv,io,os,ml_prediction
 from flask import Flask,render_template, request, redirect, url_for, session, jsonify, flash,make_response,abort
 from db import get_db, calculate_attendance_percentage
 from hasher import hash_password, verify_password
-# from llm import generate_response, build_avatar_prompt, synthesize_speech
+from llm import generate_response, build_avatar_prompt, synthesize_speech
 from memory import get_last_message, set_last_message
 from datetime import date, datetime, timedelta
 from werkzeug.utils import secure_filename
@@ -2135,4 +2135,4 @@ def avatar_page():
     )
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=True)
+    app.run()
