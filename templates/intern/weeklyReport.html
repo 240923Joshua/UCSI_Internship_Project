@@ -43,6 +43,20 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #38e07b; 
         }
+          .flash-message {
+    transition: all 0.5s ease;
+    transform: translateX(20px);
+    opacity: 0;
+  }
+          .flash-message.show {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  .flash-message.hide {
+    transform: translateX(20px);
+    opacity: 0;
+  }
     </style>
 </head>
 <script>
