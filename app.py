@@ -119,7 +119,7 @@ def intern_dashboard():
             WHERE user_id = ?
             AND internship_id = ?
             AND date = ?
-        """, (user_id, internship_id, today)).fetchone()[0]
+        """, (user_id, internship_id, today)).fetchone()
         # 3️⃣ Auto-mark Present if not exists
         if not already_marked:
             db.execute("""
