@@ -106,11 +106,11 @@
   </div>
 
   <nav class="flex-1 px-4 space-y-1">
-    <a href="{{ url_for('supervisor_dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-white/5">
+    <a href="{{ url_for('supervisor.supervisor_dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-white/5">
       <span class="material-symbols-outlined">dashboard</span> Dashboard
     </a>
 
-    <a href="{{ url_for('supervisor_interns') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-white/5">
+    <a href="{{ url_for('supervisor.supervisor_interns') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-white/5">
       <span class="material-symbols-outlined">groups</span> Interns
     </a>
 
@@ -118,7 +118,7 @@
       <span class="material-symbols-outlined">analytics</span> Performance
     </a>
 
-    <a href="{{ url_for('supervisor_profile') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-white/5">
+    <a href="{{ url_for('supervisor.supervisor_profile') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-white/5">
       <span class="material-symbols-outlined">person</span> Profile
     </a>
   </nav>
@@ -130,7 +130,7 @@
         <p class="text-sm font-bold">{{ supervisor_details.first_name }} {{ supervisor_details.last_name }}</p>
         <p class="text-xs text-[#637588] dark:text-[#96c5a9]">{{ supervisor_details.designation }}</p>
       </div>
-      <a href="{{ url_for('logout') }}">
+      <a href="{{ url_for('auth.logout') }}">
       <button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
       <span class="material-symbols-outlined text-[20px]">logout</span>
       </button>

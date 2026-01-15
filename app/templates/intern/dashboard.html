@@ -144,7 +144,7 @@
         <span class="font-medium">Dashboard</span>
       </a>
 
-      <a href="{{ url_for('internship_progress') }}" class="group flex items-center justify-between px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 transition-colors">
+      <a href="{{ url_for('intern.internship_progress') }}" class="group flex items-center justify-between px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 transition-colors">
         <div class="flex items-center gap-3">
           <span class="material-symbols-outlined group-hover:text-primary transition-colors">pie_chart</span>
           <span class="font-medium">My Progress</span>
@@ -171,18 +171,18 @@
 </svg>
       </a>
 
-      <a href="{{ url_for('weekly_report', internship_id=weeklyReportRedirect.internship_id, week=weeklyReportRedirect.week) }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 transition-colors">
+      <a href="{{ url_for('intern.weekly_report', internship_id=weeklyReportRedirect.internship_id, week=weeklyReportRedirect.week) }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 transition-colors">
         <span class="material-symbols-outlined group-hover:text-primary transition-colors">description</span>
         <span class="font-medium">Weekly Reports</span>
       </a>
 
-      <a href="{{ url_for('avatar_page') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 transition-colors">
+      <a href="{{ url_for('avatar.avatar_page') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 transition-colors">
         <span class="material-symbols-outlined group-hover:text-primary transition-colors animate-pulse">smart_toy</span>
         <span class="font-medium">AI Avatar Guidance</span>
       </a>
 
       <p class="px-4 py-2 mt-4 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Account</p>
-      <a href="{{ url_for('profile') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 transition-colors">
+      <a href="{{ url_for('intern.profile') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 transition-colors">
         <span class="material-symbols-outlined group-hover:text-primary transition-colors">person</span>
         <span class="font-medium">Profile</span>
       </a>
@@ -198,7 +198,7 @@
             <span class="text-xs text-[#637588] dark:text-[#96c5a9]">Intern • {{ domain }}</span>
           </div>
         </div>
-        <a href="{{url_for('logout')}}" class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+        <a href="{{url_for('auth.logout')}}" class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
           <span class="material-symbols-outlined text-[20px]">logout</span>
         </a>
       </div>
@@ -223,7 +223,7 @@
           <p class="text-xs uppercase tracking-wider font-bold text-[#637588] dark:text-[#96c5a9]">User Profile</p>
           <h3 class="text-2xl font-bold mt-1">Student Avatar</h3>
           <p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-1">Your personal profile representation</p>
-          <a href="{{url_for('profile')}}" class="inline-block mt-4 text-primary font-semibold">Edit profile →</a>
+          <a href="{{url_for('intern.profile')}}" class="inline-block mt-4 text-primary font-semibold">Edit profile →</a>
         </div>
       </div>
 
@@ -236,7 +236,7 @@
           <p class="text-xs uppercase tracking-wider font-bold text-[#637588] dark:text-[#96c5a9]">AI Feature</p>
           <h3 class="text-2xl font-bold mt-1">AI Avatar Available</h3>
           <p class="text-sm text-[#637588] dark:text-[#96c5a9] mt-1">Interactive assistant for guidance & insights</p>
-          <a href="{{url_for('avatar_page')}}">
+          <a href="{{url_for('avatar.avatar_page')}}">
           <span class="inline-block mt-4 px-4 py-2 rounded-full bg-primary text-[#122017] font-bold">Go</span>
         </a>
         </div>
@@ -247,7 +247,7 @@
      <div class="flex items-center justify-between mb-6">
   <h2 class="text-lg font-bold">Internship Overview</h2>
 
-<form method="get" action="{{ url_for('intern_dashboard') }}">
+<form method="get" action="{{ url_for('intern.intern_dashboard') }}">
   <select
     name="internship_id"
     id="internshipSelect"

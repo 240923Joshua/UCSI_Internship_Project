@@ -112,22 +112,22 @@
   <nav class="flex-1 px-4 space-y-1">
     <p class="px-4 py-2 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase">Menu</p>
 
-    <a href="{{ url_for('supervisor_dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] font-semibold">
+    <a href="{{ url_for('supervisor.supervisor_dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-[#122017] font-semibold">
       <span class="material-symbols-outlined">dashboard</span>
       Dashboard
     </a>
 
-    <a href="{{ url_for('supervisor_interns') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+    <a href="{{ url_for('supervisor.supervisor_interns') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
       <span class="material-symbols-outlined">groups</span>
       Interns
     </a>
 
-    <a href="{{ url_for('supervisor_performance') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+    <a href="{{ url_for('supervisor.supervisor_performance') }}" class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
       <span class="material-symbols-outlined">analytics</span>
       Performance
     </a>
 
-    <a href="{{ url_for('supervisor_profile') }}"class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
+    <a href="{{ url_for('supervisor.supervisor_profile') }}"class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-[#e6e8eb] dark:hover:bg-white/5">
       <span class="material-symbols-outlined">person</span>
       Profile
     </a>
@@ -141,7 +141,7 @@
         <p class="text-sm font-bold">{{ supervisor_details.first_name }} {{ supervisor_details.last_name }}</p>
         <p class="text-xs text-[#637588] dark:text-[#96c5a9]">{{ supervisor_details.designation }}</p>
       </div>
-      <a href="{{ url_for('logout') }}">
+      <a href="{{ url_for('auth.logout') }}">
       <button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
       <span class="material-symbols-outlined text-[20px]">logout</span>
       </button>
@@ -225,7 +225,7 @@
         </div>
       </div>
             <a
-              href="{{ url_for('supervisor_view_intern', intern_id=top_intern['user_id'], internship_id=top_intern.internship_id) }}"
+              href="{{ url_for('supervisor.supervisor_view_intern', intern_id=top_intern['user_id'], internship_id=top_intern.internship_id) }}"
             >
 
       <button class="mt-6 w-full py-2 rounded-full bg-primary text-[#122017] font-bold">
@@ -260,7 +260,7 @@
           </div>
 
           <span class="text-primary text-sm flex items-center gap-1">
-          <a href="{{ url_for('supervisor_weeklyreports', internship_id=report.internship_id,week=report.week_number) }}"
+          <a href="{{ url_for('supervisor.supervisor_weeklyreports', internship_id=report.internship_id,week=report.week_number) }}"
           class="text-primary text-sm font-medium hover:underline">
             View →
           </a>

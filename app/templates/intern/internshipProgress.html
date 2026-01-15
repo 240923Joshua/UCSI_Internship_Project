@@ -136,7 +136,7 @@
 </div>
 <div class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
 <p class="px-4 py-2 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Menu</p>
-<a href= "{{url_for('intern_dashboard', user_id=user_details.user_id)}}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<a href= "{{url_for('intern.intern_dashboard', user_id=user_details.user_id)}}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors">dashboard</span>
 <span class="font-medium">Dashboard</span>
 </a>
@@ -166,16 +166,16 @@
   />
 </svg>
 </a>
-<a href="{{url_for('weekly_report', internship_id=weeklyReportRedirect.internship_id, week=weeklyReportRedirect.week) }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<a href="{{url_for('intern.weekly_report', internship_id=weeklyReportRedirect.internship_id, week=weeklyReportRedirect.week) }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors">description</span>
 <span class="font-medium">Weekly Reports</span>
 </a>
-<a href="{{ url_for('avatar_page') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<a href="{{ url_for('avatar.avatar_page') }}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors animate-pulse">smart_toy</span>
 <span class="font-medium">AI Avatar Guidance</span>
 </a>
 <p class="px-4 py-2 mt-4 text-xs font-bold text-[#637588] dark:text-[#588569] uppercase tracking-wider">Account</p>
-<a href="{{url_for('profile')}}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
+<a href="{{url_for('intern.profile')}}" class="group flex items-center gap-3 px-4 py-3 rounded-full text-[#111418] dark:text-[#9ca3af] hover:bg-[#e6e8eb] dark:hover:bg-white/5 hover:text-[#111418] dark:hover:text-white transition-colors" href="#">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors">person</span>
 <span class="font-medium">Profile</span>
 </a>
@@ -189,7 +189,7 @@
 <span class="text-xs text-[#637588] dark:text-[#96c5a9]">Intern • {{ progress_stats.domain }}</span>
 </div>
 </div>
-<a href="{{ url_for('logout') }}">
+<a href="{{ url_for('auth.logout') }}">
 <button class="text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
 <span class="material-symbols-outlined text-[20px]">logout</span>
 </button>
@@ -210,7 +210,7 @@
 <span>Mentor Status: Active</span>
 </div>
 <button class="flex items-center gap-2 rounded-full bg-white dark:bg-[#264532] border border-[#e6e8eb] dark:border-[#366348] text-[#111418] dark:text-white font-medium hover:bg-[#f0f2f4] dark:hover:bg-[#366348] transition-colors shadow-sm">
-<a href="{{ url_for('export_report', internship_id=selected_internship_id) }}"
+<a href="{{ url_for('intern.export_report', internship_id=selected_internship_id) }}"
    class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-green-600/20 text-green-400 hover:bg-green-600/30 transition">
   <span class="material-symbols-outlined text-[20px]">download</span>
 <span>Export Report</span>
@@ -403,7 +403,7 @@
 
   </div>
 </div>
-<a href="{{ url_for('intern_report_history', internship_id=selected_internship_id) }}"
+<a href="{{ url_for('intern.intern_report_history', internship_id=selected_internship_id) }}"
    class="block h-full hover:ring-2 hover:ring-red-400 rounded-2xl transition">  
 <div class="h-full p-6 rounded-2xl bg-white dark:bg-[#1a2c22] border border-[#e6e8eb] dark:border-[#366348] shadow-sm">
   <div class="flex flex-col h-full justify-between gap-4">
@@ -502,7 +502,7 @@
   {% endfor %}
 </div>
 <a
-  href="{{ url_for('view_all_skills', internship_id=selected_internship_id) }}" class="mt-auto block text-center"
+  href="{{ url_for('intern.view_all_skills', internship_id=selected_internship_id) }}" class="mt-auto block text-center"
 >
 <button class="mt-6 w-full py-2.5 rounded-xl border border-[#e6e8eb] dark:border-[#366348] text-sm font-bold text-[#637588] dark:text-[#96c5a9] hover:text-[#111418] dark:hover:text-white hover:bg-[#f0f2f4] dark:hover:bg-[#264532] transition-colors">
                         View All Skills
