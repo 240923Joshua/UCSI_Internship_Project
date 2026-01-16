@@ -3,6 +3,8 @@ import re
 os.environ["HF_HOME"] = "hf_cache"
 os.environ["TORCH_HOME"] = "torch_cache"
 os.environ["TTS_HOME"] = "tts_cache"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+os.environ["HF_DATASETS_OFFLINE"] = "1"
 import torch
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -17,13 +19,16 @@ print(f"Using device: {device}")
 # -----------------------------
 # LLM SETUP
 # -----------------------------
-MODEL_ID = "google/gemma-2-2b-it"
+# Pointing directly to the local snapshot to bypass all Hugging Face Hub API checks
+CACHE_DIR = os.path.join(os.getcwd(), "hf_cache", "hub", "models--google--gemma-2-2b-it", "snapshots", "299a8560bedf22ed1c72a8a11e7dce4a7f9f51f8")
+MODEL_ID = CACHE_DIR
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, local_files_only=True)
 
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_ID,
-    dtype=torch.float16 if device == "cuda" else torch.float32
+    dtype=torch.float16 if device == "cuda" else torch.float32,
+    local_files_only=True
 )
 model = model.to(device)
 model.eval()
@@ -129,14 +134,3 @@ Last Message in context:
 Mentor response:
 
 """
-
-
-# choice = "y"
-# while choice.lower() == "y":
-#     user_input = input("You: ")
-#     response = generate_response(user_input)
-#     print("Gemma: ", response)
-#     synthesize_speech(response, output_file="response.wav")
-
-
-#     choice = input("Do you want to continue the chat? (y/n): ")
